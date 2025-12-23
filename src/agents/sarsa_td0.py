@@ -14,7 +14,7 @@ class SarsaTD0Config:
 
     alpha: float = 0.1
     gamma: float = 0.99
-    epsilon: float = 1.0
+    epsilon: float = 0.1
     seed: Optional[int] = None
 
 
@@ -28,8 +28,6 @@ class SarsaTD0Agent:
 
     def _epsilon_greedy(self, state: int, epsilon: float) -> int:
         # Choose random action with probability epsilon, otherwise greedy.
-        if self.q_table is None:
-            raise ValueError("Q-table not initialized. Call train() first.")
         if self._rng.random() < epsilon:
             return int(self._rng.integers(self.q_table.shape[1]))
         return int(np.argmax(self.q_table[state]))
@@ -37,7 +35,10 @@ class SarsaTD0Agent:
     def train(self, env, num_episodes: int) -> List[float]:
         """Train SARSA (TD(0)) and return per-episode rewards."""
         rewards: List[float] = []
+        td_errors: List[float] = []
+
         epsilon = self.config.epsilon
+
         # Build a fresh Q-table from env's discrete spaces.
         n_states = env.observation_space.n
         n_actions = env.action_space.n
@@ -65,9 +66,9 @@ class SarsaTD0Agent:
 
                 state, action = next_state, next_action
                 total_reward += reward
+                td_errors.append(td_error)
 
-            rewards.append(total_reward)
-        return rewards
+        return rewards, td_errors
 
     def act(self, state: int) -> int:
         """Greedy action from current Q-table."""

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Optional, Tuple
 
 
-def evaluate_winrate(
+def evaluate_win_rate(
     env, agent, num_episodes: int, seed: Optional[int] = None
 ) -> Tuple[float, int]:
     """Evaluate agent win rate over episodes."""
