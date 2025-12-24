@@ -12,8 +12,9 @@ import numpy as np
 
 from agents.sarsa_td0 import SarsaTD0Agent, SarsaTD0Config
 from environments.fronzenlake import get_frozenlake_env
-from metrics.evaluate_win_rate import evaluate_win_rate
-from plots.plot_episode_returns import plot_episode_returns
+from metrics.learning_mertrics import evaluate_win_rate
+from plots.learning_plots import plot_moving_average_returns
+from plots.frustration_plots import plot_moving_average_td_errors
 
 
 @dataclass
@@ -64,14 +65,17 @@ def run_experiment(
             "wins": int(total_wins),
         },
     }
-    return result
+
+    per_step_metrics = {"returns": returns, "td_errors": td_errors}
+
+    return per_step_metrics, result
 
 
 def save_run(
     result: Dict[str, Any],
+    per_step_metrics: Dict[str, list[float]] | None = None,
     runs_dir: Path = Path("runs"),
     save_plots: bool = False,
-    returns: list[float] | None = None,
 ) -> Path:
     """Save a run to JSONL and optionally write plot artifacts."""
     runs_dir.mkdir(parents=True, exist_ok=True)
@@ -86,8 +90,13 @@ def save_run(
 
     # Save config and optionally a returns plot.
     (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
-    if save_plots and returns is not None:
-        plot_episode_returns(returns)
+    if save_plots and per_step_metrics is not None:
+        returns = per_step_metrics.get("returns")
+        td_errors = per_step_metrics.get("td_errors")
+        if returns is not None:
+            plot_moving_average_returns(returns)
+        if td_errors is not None:
+            plot_moving_average_td_errors(td_errors)
 
     return run_dir
 
@@ -105,12 +114,13 @@ def main() -> Tuple[Dict[str, Any], Path]:
         },
     )
 
-    result = run_experiment(
+    per_step_metrics, result = run_experiment(
         config,
         env_factory=get_frozenlake_env,
         agent_factory=SarsaTD0Agent,
     )
-    run_dir = save_run(result, save_plots=False)
+
+    run_dir = save_run(per_step_metrics=per_step_metrics, save_plots=False)
     return result, run_dir
 
 
