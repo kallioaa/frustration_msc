@@ -11,6 +11,8 @@ class SarsaTD0Config:
     alpha: float = 0.1
     gamma: float = 0.99
     epsilon: float = 0.1
+    epsilon_min: float = 0.01
+    epsilon_decay: float = 0.995
     seed: Optional[int] = None
 
 
@@ -44,6 +46,7 @@ class SarsaTD0Agent:
             action = self._epsilon_greedy(state, epsilon)
 
             total_reward = 0.0
+            total_td_errors = 0.0
             done = False
 
             while not done:
@@ -62,12 +65,16 @@ class SarsaTD0Agent:
 
                 td_error = td_target - self.q_table[state, action]
                 self.q_table[state, action] += self.config.alpha * td_error
-                td_errors.append(float(td_error))
+
+                # append td_errors
+                total_td_errors += td_error
 
                 if not done:
                     state, action = next_state, next_action
 
             rewards.append(total_reward)
+            epsilon = max(self.config.epsilon_min, epsilon * self.config.epsilon_decay)
+            td_errors.append(total_td_errors)
 
         return rewards, td_errors
 

@@ -66,16 +66,17 @@ def run_experiment(
         },
     }
 
-    per_step_metrics = {"returns": returns, "td_errors": td_errors}
+    per_episode_metrics = {"returns": returns, "td_errors": td_errors}
 
-    return per_step_metrics, result
+    return per_episode_metrics, result
 
 
 def save_run(
     result: Dict[str, Any],
-    per_step_metrics: Dict[str, list[float]] | None = None,
+    per_episode_metrics: Dict[str, list[float]] | None = None,
     runs_dir: Path = Path("runs"),
     save_plots: bool = False,
+    window_size: int = 100,
 ) -> Path:
     """Save a run to JSONL and optionally write plot artifacts."""
     runs_dir.mkdir(parents=True, exist_ok=True)
@@ -90,13 +91,13 @@ def save_run(
 
     # Save config and optionally a returns plot.
     (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
-    if save_plots and per_step_metrics is not None:
-        returns = per_step_metrics.get("returns")
-        td_errors = per_step_metrics.get("td_errors")
+    if save_plots and per_episode_metrics is not None:
+        returns = per_episode_metrics.get("returns")
+        td_errors = per_episode_metrics.get("td_errors")
         if returns is not None:
-            plot_moving_average_returns(returns)
+            plot_moving_average_returns(returns, window=window_size)
         if td_errors is not None:
-            plot_moving_average_td_errors(td_errors)
+            plot_moving_average_td_errors(td_errors, window=window_size)
 
     return run_dir
 
@@ -114,13 +115,13 @@ def main() -> Tuple[Dict[str, Any], Path]:
         },
     )
 
-    per_step_metrics, result = run_experiment(
+    per_episode_metrics, result = run_experiment(
         config,
         env_factory=get_frozenlake_env,
         agent_factory=SarsaTD0Agent,
     )
 
-    run_dir = save_run(per_step_metrics=per_step_metrics, save_plots=False)
+    run_dir = save_run(per_episode_metrics=per_episode_metrics, save_plots=False)
     return result, run_dir
 
 
