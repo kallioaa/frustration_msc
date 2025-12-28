@@ -2,13 +2,76 @@
 
 from __future__ import annotations
 
-from typing import Iterable
+import math
 
 
-def negative_td_errors(td_errors: Iterable[float]) -> list[float]:
-    """Return a list with negative TD errors, zeros otherwise."""
-    result: list[float] = []
-    for td_error in td_errors:
-        value = float(td_error)
-        result.append(value if value < 0.0 else 0.0)
+def total_td_error_per_episode(td_errors: list[float]) -> float:
+    """Return the total TD error for an episode."""
+    return float(sum(td_errors))
+
+
+def frustration_rate_per_episode(td_errors: list[float]) -> float:
+    """Return the percentage of negative td_errors"""
+    if not td_errors:
+        raise ValueError("td_errors must be non-empty")
+
+    n = len(td_errors)
+    n_negative = sum(1 for td_error in td_errors if td_error < 0)
+
+    result = n_negative / n
     return result
+
+
+def tail_frustration_per_episode(
+    td_errors: list[float], percentile: float = 0.9
+) -> float:
+    """Compute tail frustration from max(0, -td_error) within an episode.
+
+    Args:
+        td_errors: Per-step TD errors for a single episode.
+        percentile: Percentile in [0, 1] (e.g., 0.9 for 90th).
+    """
+    if not td_errors:
+        raise ValueError("td_errors must be non-empty")
+    if percentile < 0.0 or percentile > 1.0:
+        raise ValueError("percentile must be between 0 and 1")
+
+    magnitudes = [min(0.0, float(td_error)) for td_error in td_errors]
+    if all(value == 0.0 for value in magnitudes):
+        return 0.0
+
+    magnitudes.sort()
+    n = len(magnitudes)
+
+    index = (n - 1) * percentile
+    lower = int(math.floor(index))
+    upper = int(math.ceil(index))
+    if lower == upper:
+        return magnitudes[lower]
+    weight = index - lower
+    return magnitudes[lower] * (1.0 - weight) + magnitudes[upper] * weight
+
+
+def cvar_tail_frustration_per_episode(
+    td_errors: list[float], percentile: float = 0.9
+) -> float:
+    """Compute CVaR-style mean of the worst tail of max(0, -td_error).
+
+    Args:
+        td_errors: Per-step TD errors for a single episode.
+        percentile: Percentile in [0, 1] (e.g., 0.9 for 90th).
+    """
+    if not td_errors:
+        raise ValueError("td_errors must be non-empty")
+    if percentile < 0.0 or percentile > 1.0:
+        raise ValueError("percentile must be between 0 and 1")
+
+    magnitudes = [min(0.0, float(td_error)) for td_error in td_errors]
+    if all(value == 0.0 for value in magnitudes):
+        return 0.0
+
+    magnitudes.sort()
+    n = len(magnitudes)
+    tail_fraction = max(1, math.ceil((1.0 - percentile) * n))
+    tail_values = magnitudes[-tail_fraction:]
+    return sum(tail_values) / len(tail_values)

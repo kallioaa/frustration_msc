@@ -3,127 +3,118 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
-
 from agents.sarsa_td0 import SarsaTD0Agent, SarsaTD0Config
+from evaluation.evaluator import evaluator
 from environments.fronzenlake import get_frozenlake_env
-from metrics.learning_mertrics import evaluate_win_rate
 from plots.learning_plots import plot_moving_average_returns
-from plots.frustration_plots import plot_moving_average_td_errors
+from plots.frustration_plots import (
+    plot_moving_average_td_errors,
+    plot_frustration_quantiles,
+    plot_frustration_rate,
+    plot_tail_frustration,
+    plot_cvar_tail_frustration,
+)
 
 
 @dataclass
-class ExperimentConfig:
-    """Configuration for a single training + evaluation run."""
+class TrainingConfig:
+    """Configuration for training runs."""
 
     name: str = "sarsa_frozenlake"
     num_train_episodes: int = 10000
-    num_eval_episodes: int = 1000
     seed: int | None = 0
     env_kwargs: Dict[str, Any] = None
     agent_kwargs: Dict[str, Any] = None
+
+
+@dataclass
+class EvaluateConfig:
+    """Configuration for evaluation runs."""
+
+    name: str = "sarsa_frozenlake"
+    num_eval_episodes: int = 1000
+    seed: int | None = 0
+    env_kwargs: Dict[str, Any] = None
 
 
 def _timestamp() -> str:
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
-def run_experiment(
-    config: ExperimentConfig,
+def run_training(
+    config: TrainingConfig,
     env_factory: Callable[..., Any],
     agent_factory: Callable[..., Any],
-    evaluator: Callable[..., Tuple[float, int]] = evaluate_win_rate,
-) -> Dict[str, Any]:
-    """Run a training + evaluation loop with pluggable env/agent."""
+) -> Tuple[Any, Dict[str, Any]]:
+    """Run a training loop with pluggable env/agent."""
     env_kwargs = config.env_kwargs or {}
     agent_kwargs = config.agent_kwargs or {}
     env = env_factory(**env_kwargs)
     agent = agent_factory(**agent_kwargs)
 
-    returns, td_errors = agent.train(env, num_episodes=config.num_train_episodes)
-    win_rate, total_wins = evaluator(
+    training_metrics = agent.train(env, num_episodes=config.num_train_episodes)
+    return agent, training_metrics
+
+
+def run_evaluation(
+    config: EvaluateConfig,
+    env_factory: Callable[..., Any],
+    agent: Any,
+) -> Dict[str, Any]:
+    """Evaluate a trained agent and return run-level results."""
+    env_kwargs = config.env_kwargs or {}
+    env = env_factory(**env_kwargs)
+
+    eval_metrics = evaluator(
         env, agent, num_episodes=config.num_eval_episodes, seed=config.seed
     )
 
-    result = {
+    config_dict = asdict(config)
+    evaluation_metrics: Dict[str, Any] = {
         "timestamp": _timestamp(),
-        "config": asdict(config),
-        "train": {
-            "episodes": config.num_train_episodes,
-            "avg_return": float(np.mean(returns)) if returns else 0.0,
-            "final_return": float(returns[-1]) if returns else 0.0,
-            "td_error_mean": float(np.mean(td_errors)) if td_errors else 0.0,
-        },
-        "eval": {
-            "episodes": config.num_eval_episodes,
-            "win_rate": float(win_rate),
-            "wins": int(total_wins),
-        },
+        "config": config_dict,
+        "eval": eval_metrics,
     }
 
-    per_episode_metrics = {"returns": returns, "td_errors": td_errors}
-
-    return per_episode_metrics, result
+    return evaluation_metrics
 
 
-def save_run(
-    result: Dict[str, Any],
-    per_episode_metrics: Dict[str, list[float]] | None = None,
-    runs_dir: Path = Path("runs"),
-    save_plots: bool = False,
+def generate_training_plots(
+    training_metrics: Dict[str, Any],
     window_size: int = 100,
-) -> Path:
-    """Save a run to JSONL and optionally write plot artifacts."""
-    runs_dir.mkdir(parents=True, exist_ok=True)
-    run_id = result["timestamp"]
-    run_dir = runs_dir / run_id
-    run_dir.mkdir(parents=True, exist_ok=True)
+) -> None:
+    """Generate plots from per-episode metrics."""
+    total_reward_per_episode = training_metrics.get("reward", {}).get(
+        "total_reward_per_episode"
+    )
+    total_td_error_per_episode = training_metrics.get("td_error", {}).get(
+        "total_td_error_per_episode"
+    )
+    if total_reward_per_episode is not None:
+        plot_moving_average_returns(total_reward_per_episode, window=window_size)
+    if total_td_error_per_episode is not None:
+        plot_moving_average_td_errors(total_td_error_per_episode, window=window_size)
+        plot_frustration_quantiles(total_td_error_per_episode, window=window_size)
 
-    # Append to a JSONL log for easy aggregation.
-    log_path = runs_dir / "runs.jsonl"
-    with log_path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(result) + "\n")
-
-    # Save config and optionally a returns plot.
-    (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
-    if save_plots and per_episode_metrics is not None:
-        returns = per_episode_metrics.get("returns")
-        td_errors = per_episode_metrics.get("td_errors")
-        if returns is not None:
-            plot_moving_average_returns(returns, window=window_size)
-        if td_errors is not None:
-            plot_moving_average_td_errors(td_errors, window=window_size)
-
-    return run_dir
-
-
-def main() -> Tuple[Dict[str, Any], Path]:
-    """Example entrypoint; adjust config as needed."""
-    config = ExperimentConfig(
-        name="sarsa_frozenlake",
-        num_train_episodes=10000,
-        num_eval_episodes=1000,
-        seed=0,
-        env_kwargs={"map_name": "4x4", "is_slippery": False},
-        agent_kwargs={
-            "config": SarsaTD0Config(alpha=0.1, gamma=0.99, epsilon=0.1, seed=0)
-        },
+    frustration_rate_per_episode = training_metrics.get("td_error", {}).get(
+        "frustration_rate_per_episode"
+    )
+    tail_frustration_per_episode = training_metrics.get("td_error", {}).get(
+        "tail_frustration_per_episode_90"
+    )
+    cvar_tail_frustration_per_episode = training_metrics.get("td_error", {}).get(
+        "cvar_tail_frustration_per_episode_90"
     )
 
-    per_episode_metrics, result = run_experiment(
-        config,
-        env_factory=get_frozenlake_env,
-        agent_factory=SarsaTD0Agent,
-    )
-
-    run_dir = save_run(per_episode_metrics=per_episode_metrics, save_plots=False)
-    return result, run_dir
-
-
-if __name__ == "__main__":
-    main()
+    if frustration_rate_per_episode is not None:
+        plot_frustration_rate(frustration_rate_per_episode, window=window_size)
+    if tail_frustration_per_episode is not None:
+        plot_tail_frustration(tail_frustration_per_episode, window=window_size)
+    if cvar_tail_frustration_per_episode is not None:
+        plot_cvar_tail_frustration(cvar_tail_frustration_per_episode, window=window_size)

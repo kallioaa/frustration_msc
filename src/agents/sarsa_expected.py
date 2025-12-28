@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Callable, Dict, List, Optional
 
 import numpy as np
 
@@ -12,6 +12,8 @@ class SarsaExpectedConfig:
     gamma: float = 0.99
     epsilon: float = 0.1
     seed: Optional[int] = None
+    reward_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
+    td_error_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
 
 
 class SarsaExpectedAgent:
@@ -35,9 +37,15 @@ class SarsaExpectedAgent:
         probs[greedy_actions] += (1.0 - epsilon) / len(greedy_actions)
         return float(np.dot(probs, q_values))
 
-    def train(self, env, num_episodes: int) -> Tuple[List[float], List[float]]:
-        rewards: List[float] = []
-        td_errors: List[float] = []
+    def train(self, env, num_episodes: int) -> Dict[str, Dict[str, List[float]]]:
+        reward_metrics = self.config.reward_metrics or {}
+        td_error_metrics = self.config.td_error_metrics or {}
+        reward_metrics_log: Dict[str, List[float]] = {
+            name: [] for name in reward_metrics
+        }
+        td_error_metrics_log: Dict[str, List[float]] = {
+            name: [] for name in td_error_metrics
+        }
 
         n_states = env.observation_space.n
         n_actions = env.action_space.n
@@ -49,16 +57,16 @@ class SarsaExpectedAgent:
         epsilon = self.config.epsilon
 
         for _ in range(num_episodes):
+            episode_rewards: List[float] = []
+            episode_td_errors: List[float] = []
+
             state, _info = env.reset()
             action = self._epsilon_greedy(state, epsilon)
-
-            total_reward = 0.0
             done = False
 
             while not done:
                 next_state, reward, terminated, truncated, _ = env.step(action)
                 done = terminated or truncated
-                total_reward += float(reward)
 
                 if done:
                     td_target = float(reward)
@@ -68,15 +76,24 @@ class SarsaExpectedAgent:
 
                 td_error = td_target - self.q_table[state, action]
                 self.q_table[state, action] += self.config.alpha * td_error
-                td_errors.append(float(td_error))
 
                 if not done:
                     action = self._epsilon_greedy(next_state, epsilon)
                     state = next_state
 
-            rewards.append(total_reward)
+                episode_rewards.append(float(reward))
+                episode_td_errors.append(float(td_error))
 
-        return rewards, td_errors
+            for name, fn in reward_metrics.items():
+                reward_metrics_log[name].append(float(fn(episode_rewards)))
+            for name, fn in td_error_metrics.items():
+                td_error_metrics_log[name].append(float(fn(episode_td_errors)))
+
+        episode_metrics: Dict[str, Dict[str, List[float]]] = {
+            "reward": reward_metrics_log,
+            "td_error": td_error_metrics_log,
+        }
+        return episode_metrics
 
     def act(self, state: int) -> int:
         if self.q_table is None:
