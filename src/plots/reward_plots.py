@@ -25,24 +25,29 @@ def plot_moving_average_returns(returns: list[float], window: int = 100) -> None
     plt.show()
 
 
-def plot_moving_average_td_errors(td_errors: list[float], window: int = 100) -> None:
-    """Plot the moving average of TD errors."""
+def plot_moving_average_episode_won(
+    episode_won: list[float], window: int = 100
+) -> None:
+    """Plot the moving average of per-episode wins."""
     if window <= 0:
         raise ValueError("window must be a positive integer")
-    if len(td_errors) < window:
-        raise ValueError("window is larger than the number of td_errors")
+    if len(episode_won) < window:
+        raise ValueError("window is larger than the number of episodes")
 
-    errors_array = np.asarray(td_errors, dtype=float)
-    moving_avg = np.convolve(errors_array, np.ones(window) / window, mode="valid")
-    x_values = np.arange(window - 1, len(td_errors))
+    won_array = np.asarray(episode_won, dtype=float)
+    moving_avg = np.convolve(won_array, np.ones(window) / window, mode="valid")
+    x_values = np.arange(window - 1, len(episode_won))
 
     plt.figure(figsize=(10, 6))
     plt.plot(
-        x_values, moving_avg, label=f"{window}-Episode Moving Average", color="orange"
+        x_values,
+        moving_avg,
+        label=f"{window}-Episode Moving Average (Win Rate)",
+        color="blue",
     )
     plt.xlabel("Episode")
-    plt.ylabel("TD Error")
-    plt.title("Moving Average of TD Errors")
+    plt.ylabel("Win Rate")
+    plt.title("Moving Average of Episode Wins")
     plt.legend()
     plt.grid(True)
     plt.show()

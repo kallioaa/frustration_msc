@@ -9,12 +9,15 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
-from agents.sarsa_td0 import SarsaTD0Agent, SarsaTD0Config
 from evaluation.evaluator import evaluator
 from environments.fronzenlake import get_frozenlake_env
-from plots.learning_plots import plot_moving_average_returns
-from plots.frustration_plots import (
+from plots.reward_plots import (
+    plot_moving_average_episode_won,
+    plot_moving_average_returns,
+)
+from plots.td_error_plots import (
     plot_moving_average_td_errors,
+    plot_moving_average_td_errors_neg_and_pos,
     plot_frustration_quantiles,
     plot_frustration_rate,
     plot_tail_frustration,
@@ -93,13 +96,19 @@ def generate_training_plots(
     total_reward_per_episode = training_metrics.get("reward", {}).get(
         "total_reward_per_episode"
     )
+    episode_won_per_episode = training_metrics.get("reward", {}).get("episode_won")
     total_td_error_per_episode = training_metrics.get("td_error", {}).get(
         "total_td_error_per_episode"
     )
     if total_reward_per_episode is not None:
         plot_moving_average_returns(total_reward_per_episode, window=window_size)
+    if episode_won_per_episode is not None:
+        plot_moving_average_episode_won(episode_won_per_episode, window=window_size)
     if total_td_error_per_episode is not None:
         plot_moving_average_td_errors(total_td_error_per_episode, window=window_size)
+        plot_moving_average_td_errors_neg_and_pos(
+            total_td_error_per_episode, window=window_size
+        )
         plot_frustration_quantiles(total_td_error_per_episode, window=window_size)
 
     frustration_rate_per_episode = training_metrics.get("td_error", {}).get(
@@ -117,4 +126,6 @@ def generate_training_plots(
     if tail_frustration_per_episode is not None:
         plot_tail_frustration(tail_frustration_per_episode, window=window_size)
     if cvar_tail_frustration_per_episode is not None:
-        plot_cvar_tail_frustration(cvar_tail_frustration_per_episode, window=window_size)
+        plot_cvar_tail_frustration(
+            cvar_tail_frustration_per_episode, window=window_size
+        )

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -22,6 +22,7 @@ class SarsaTD0Agent:
         self.q_table: Optional[np.ndarray] = None
         self._rng = np.random.default_rng(config.seed)
 
+    # Returns a tuple (was_greedy, action)
     def _epsilon_greedy(self, state: int, epsilon: float) -> int:
         if self._rng.random() < epsilon:
             return int(self._rng.integers(self.q_table.shape[1]))
