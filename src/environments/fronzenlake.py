@@ -12,14 +12,18 @@ class FrozenLakeConfig:
     map_name: str = "4x4"
     is_slippery: bool = False
     reward_schedule: Tuple[float, float, float] = (1.0, 0.0, 0.0)
+    success_rate: float = 0.9
 
 
-def get_frozenlake_env(config: FrozenLakeConfig) -> gym.Env:
-    """Create a FrozenLake environment from a config object."""
+def get_frozenlake_env(config: FrozenLakeConfig | dict) -> gym.Env:
+    """Create a FrozenLake environment from a config object or dict."""
+    if isinstance(config, dict):
+        config = FrozenLakeConfig(**config)
     env = gym.make(
         "FrozenLake-v1",
         map_name=config.map_name,
         is_slippery=config.is_slippery,
         reward_schedule=config.reward_schedule,
+        success_rate=config.success_rate,
     )
     return env

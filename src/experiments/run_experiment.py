@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime
+import itertools
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
@@ -31,7 +32,6 @@ class TrainingConfig:
 
     name: str = "sarsa_frozenlake"
     num_train_episodes: int = 10000
-    seed: int | None = 0
     env_kwargs: Dict[str, Any] = None
     agent_kwargs: Dict[str, Any] = None
 
@@ -115,10 +115,10 @@ def generate_training_plots(
         "frustration_rate_per_episode"
     )
     tail_frustration_per_episode = training_metrics.get("td_error", {}).get(
-        "tail_frustration_per_episode_90"
+        "tail_frustration_per_episode"
     )
     cvar_tail_frustration_per_episode = training_metrics.get("td_error", {}).get(
-        "cvar_tail_frustration_per_episode_90"
+        "cvar_tail_frustration_per_episode"
     )
 
     if frustration_rate_per_episode is not None:
