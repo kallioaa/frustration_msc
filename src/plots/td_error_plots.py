@@ -100,10 +100,10 @@ def plot_moving_average_td_errors_neg_and_pos(
     plt.show()
 
 
-def plot_moving_average_td_errors_neg_and_pos_multi(
+def plot_moving_average_td_errors_neg_multi(
     series: dict[str, list[float]], window: int = 100
 ) -> None:
-    """Plot moving average of negative and positive TD errors for multiple runs."""
+    """Plot moving average of negative TD errors for multiple runs."""
     if window <= 0:
         raise ValueError("window must be a positive integer")
     if not series:
@@ -116,33 +116,22 @@ def plot_moving_average_td_errors_neg_and_pos_multi(
                 f"window is larger than the number of td_errors for {label}"
             )
         negative_errors = [float(e) if e < 0.0 else 0.0 for e in td_errors]
-        positive_errors = [float(e) if e >= 0.0 else 0.0 for e in td_errors]
 
         negative_array = np.asarray(negative_errors, dtype=float)
-        positive_array = np.asarray(positive_errors, dtype=float)
         negative_avg = np.convolve(
             negative_array, np.ones(window) / window, mode="valid"
-        )
-        positive_avg = np.convolve(
-            positive_array, np.ones(window) / window, mode="valid"
         )
         x_values = np.arange(window - 1, len(td_errors))
 
         plt.plot(
             x_values,
             negative_avg,
-            label=f"{label} (neg)",
-            linestyle="--",
-        )
-        plt.plot(
-            x_values,
-            positive_avg,
-            label=f"{label} (pos)",
+            label=label,
         )
 
     plt.xlabel("Episode")
     plt.ylabel("TD Error")
-    plt.title("Moving Average of TD Error Signs")
+    plt.title("Moving Average of Negative TD Errors")
     plt.legend()
     plt.grid(True)
     plt.show()

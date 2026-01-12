@@ -19,7 +19,7 @@ from plots.reward_plots import (
 from plots.td_error_plots import (
     plot_frustration_rate_multi,
     plot_moving_average_td_errors_multi,
-    plot_moving_average_td_errors_neg_and_pos_multi,
+    plot_moving_average_td_errors_neg_multi,
 )
 
 
@@ -136,9 +136,7 @@ def plot_sweep_training_curves(
     if plot_td_errors and td_error_series:
         plot_moving_average_td_errors_multi(td_error_series, window=window_size)
     if plot_td_errors_neg_pos and td_error_series:
-        plot_moving_average_td_errors_neg_and_pos_multi(
-            td_error_series, window=window_size
-        )
+        plot_moving_average_td_errors_neg_multi(td_error_series, window=window_size)
     if plot_frustration_rate and frustration_rate_series:
         plot_frustration_rate_multi(frustration_rate_series, window=window_size)
 
