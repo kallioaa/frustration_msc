@@ -32,6 +32,35 @@ def plot_moving_average_td_errors(td_errors: list[float], window: int = 100) -> 
     plt.show()
 
 
+def plot_moving_average_td_errors_multi(
+    series: dict[str, list[float]], window: int = 100
+) -> None:
+    """Plot moving average of TD errors for multiple parameter settings."""
+    if window <= 0:
+        raise ValueError("window must be a positive integer")
+    if not series:
+        raise ValueError("series must not be empty")
+
+    plt.figure(figsize=(10, 6))
+    for label, td_errors in series.items():
+        if len(td_errors) < window:
+            raise ValueError(
+                f"window is larger than the number of td_errors for {label}"
+            )
+        errors_array = np.asarray(td_errors, dtype=float)
+        errors_array = np.abs(errors_array)
+        moving_avg = np.convolve(errors_array, np.ones(window) / window, mode="valid")
+        x_values = np.arange(window - 1, len(td_errors))
+        plt.plot(x_values, moving_avg, label=label)
+
+    plt.xlabel("Episode")
+    plt.ylabel("TD Error")
+    plt.title("Moving Average of TD Errors")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
 def plot_moving_average_td_errors_neg_and_pos(
     td_errors: list[float], window: int = 100
 ) -> None:
@@ -63,6 +92,54 @@ def plot_moving_average_td_errors_neg_and_pos(
         label=f"{window}-Episode Moving Average (Positive TD Error)",
         color="green",
     )
+    plt.xlabel("Episode")
+    plt.ylabel("TD Error")
+    plt.title("Moving Average of TD Error Signs")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+def plot_moving_average_td_errors_neg_and_pos_multi(
+    series: dict[str, list[float]], window: int = 100
+) -> None:
+    """Plot moving average of negative and positive TD errors for multiple runs."""
+    if window <= 0:
+        raise ValueError("window must be a positive integer")
+    if not series:
+        raise ValueError("series must not be empty")
+
+    plt.figure(figsize=(10, 6))
+    for label, td_errors in series.items():
+        if len(td_errors) < window:
+            raise ValueError(
+                f"window is larger than the number of td_errors for {label}"
+            )
+        negative_errors = [float(e) if e < 0.0 else 0.0 for e in td_errors]
+        positive_errors = [float(e) if e >= 0.0 else 0.0 for e in td_errors]
+
+        negative_array = np.asarray(negative_errors, dtype=float)
+        positive_array = np.asarray(positive_errors, dtype=float)
+        negative_avg = np.convolve(
+            negative_array, np.ones(window) / window, mode="valid"
+        )
+        positive_avg = np.convolve(
+            positive_array, np.ones(window) / window, mode="valid"
+        )
+        x_values = np.arange(window - 1, len(td_errors))
+
+        plt.plot(
+            x_values,
+            negative_avg,
+            label=f"{label} (neg)",
+            linestyle="--",
+        )
+        plt.plot(
+            x_values,
+            positive_avg,
+            label=f"{label} (pos)",
+        )
+
     plt.xlabel("Episode")
     plt.ylabel("TD Error")
     plt.title("Moving Average of TD Error Signs")
@@ -125,6 +202,34 @@ def plot_frustration_rate(
         label=f"{window}-Episode Moving Average (Frustration Rate)",
         color="purple",
     )
+    plt.xlabel("Episode")
+    plt.ylabel("Frustration Rate")
+    plt.title("Frustration Rate per Episode")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+def plot_frustration_rate_multi(
+    series: dict[str, list[float]], window: int = 100
+) -> None:
+    """Plot moving average of frustration rate for multiple parameter settings."""
+    if window <= 0:
+        raise ValueError("window must be a positive integer")
+    if not series:
+        raise ValueError("series must not be empty")
+
+    plt.figure(figsize=(10, 6))
+    for label, values in series.items():
+        if len(values) < window:
+            raise ValueError(
+                f"window is larger than the number of episodes for {label}"
+            )
+        values_array = np.asarray(values, dtype=float)
+        moving_avg = np.convolve(values_array, np.ones(window) / window, mode="valid")
+        x_values = np.arange(window - 1, len(values_array))
+        plt.plot(x_values, moving_avg, label=label)
+
     plt.xlabel("Episode")
     plt.ylabel("Frustration Rate")
     plt.title("Frustration Rate per Episode")

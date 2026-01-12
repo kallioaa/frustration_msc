@@ -16,6 +16,11 @@ from plots.reward_plots import (
     plot_moving_average_episode_won_multi,
     plot_moving_average_returns_multi,
 )
+from plots.td_error_plots import (
+    plot_frustration_rate_multi,
+    plot_moving_average_td_errors_multi,
+    plot_moving_average_td_errors_neg_and_pos_multi,
+)
 
 
 def iter_grid(sweep: Dict[str, list[Any]]) -> list[Dict[str, Any]]:
@@ -91,18 +96,26 @@ def plot_sweep_training_curves(
     label_fn: Callable[[Dict[str, Any]], str] | None = None,
     plot_returns: bool = True,
     plot_episode_won: bool = True,
+    plot_td_errors: bool = True,
+    plot_td_errors_neg_pos: bool = True,
+    plot_frustration_rate: bool = True,
 ) -> None:
     """Plot multi-line training curves from sweep results."""
     returns_series: Dict[str, list[float]] = {}
     won_series: Dict[str, list[float]] = {}
+    td_error_series: Dict[str, list[float]] = {}
+    frustration_rate_series: Dict[str, list[float]] = {}
     label_counts: Dict[str, int] = {}
 
     for result in results:
         params = result.get("params", {})
         training = result.get("training", {})
         reward_metrics = training.get("reward", {})
+        td_error_metrics = training.get("td_error", {})
         returns = reward_metrics.get("total_reward_per_episode")
         episode_won = reward_metrics.get("episode_won")
+        total_td_error = td_error_metrics.get("total_td_error_per_episode")
+        frustration_rate = td_error_metrics.get("frustration_rate_per_episode")
 
         label = label_fn(params) if label_fn else _format_sweep_label(params)
         label = _unique_label(label, label_counts)
@@ -111,11 +124,23 @@ def plot_sweep_training_curves(
             returns_series[label] = returns
         if plot_episode_won and episode_won is not None:
             won_series[label] = episode_won
+        if plot_td_errors and total_td_error is not None:
+            td_error_series[label] = total_td_error
+        if plot_frustration_rate and frustration_rate is not None:
+            frustration_rate_series[label] = frustration_rate
 
     if plot_returns and returns_series:
         plot_moving_average_returns_multi(returns_series, window=window_size)
     if plot_episode_won and won_series:
         plot_moving_average_episode_won_multi(won_series, window=window_size)
+    if plot_td_errors and td_error_series:
+        plot_moving_average_td_errors_multi(td_error_series, window=window_size)
+    if plot_td_errors_neg_pos and td_error_series:
+        plot_moving_average_td_errors_neg_and_pos_multi(
+            td_error_series, window=window_size
+        )
+    if plot_frustration_rate and frustration_rate_series:
+        plot_frustration_rate_multi(frustration_rate_series, window=window_size)
 
 
 def _format_sweep_label(params: Dict[str, Any]) -> str:
