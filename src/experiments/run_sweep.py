@@ -16,6 +16,7 @@ from plots.reward_plots import (
     plot_moving_average_episode_won_multi,
     plot_moving_average_returns_multi,
 )
+from plots.evaluation_plots import plot_sweep_win_rate_bar
 from plots.td_error_plots import (
     plot_frustration_rate_multi,
     plot_moving_average_td_errors_multi,
@@ -90,7 +91,7 @@ def run_sweep(
     return results
 
 
-def plot_sweep_training_curves(
+def plot_sweep_training(
     results: list[Dict[str, Any]],
     window_size: int = 100,
     label_fn: Callable[[Dict[str, Any]], str] | None = None,
@@ -141,6 +142,29 @@ def plot_sweep_training_curves(
         plot_frustration_rate_multi(frustration_rate_series, window=window_size)
 
 
+def plot_sweep_evaluation(
+    results: list[Dict[str, Any]],
+    label_fn: Callable[[Dict[str, Any]], str] | None = None,
+) -> None:
+    """Plot evaluation summaries for sweep runs."""
+    labels: list[str] = []
+    values: list[float] = []
+    label_counts: Dict[str, int] = {}
+
+    for result in results:
+        params = result.get("params", {})
+        evaluation = result.get("evaluation", {}).get("eval", {})
+        win_rate = evaluation.get("win_rate")
+        if win_rate is None:
+            continue
+        label = label_fn(params) if label_fn else _format_sweep_label(params)
+        label = _unique_label(label, label_counts)
+        labels.append(label)
+        values.append(float(win_rate))
+
+    plot_sweep_win_rate_bar(labels, values)
+
+
 def _format_sweep_label(params: Dict[str, Any]) -> str:
     """Create a compact label from agent/env sweep parameters."""
     agent_kwargs = params.get("agent_kwargs") or {}
@@ -148,7 +172,20 @@ def _format_sweep_label(params: Dict[str, Any]) -> str:
     parts = []
 
     if agent_kwargs:
-        agent_items = ", ".join(f"{k}={v}" for k, v in agent_kwargs.items())
+        q_table_label = agent_kwargs.get("initial_q_table_label")
+        if q_table_label is None and "initial_q_table" in agent_kwargs:
+            q_table_label = "zeros"
+        agent_items_list = []
+        for key, value in agent_kwargs.items():
+            if key == "initial_q_table":
+                continue
+            if key == "initial_q_table_label":
+                agent_items_list.append(f"q_table={value}")
+                continue
+            agent_items_list.append(f"{key}={value}")
+        if q_table_label is not None and "initial_q_table_label" not in agent_kwargs:
+            agent_items_list.append(f"q_table={q_table_label}")
+        agent_items = ", ".join(agent_items_list)
         parts.append(f"agent: {agent_items}")
     if env_kwargs:
         env_items = ", ".join(f"{k}={v}" for k, v in env_kwargs.items())
