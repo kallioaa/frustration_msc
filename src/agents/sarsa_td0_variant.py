@@ -35,15 +35,37 @@ class SarsaTD0VariantAgent:
             return int(self._rng.integers(self.q_table.shape[1]))
         return int(np.argmax(self.q_table[state]))
 
+    def _v_from_q_eps_greedy(self, state: int) -> float:
+        """
+        Compute V_pi(state) = E_{a~pi}[Q(state,a)] for an epsilon-greedy policy.
+        Tie-aware: splits greedy mass across all argmax actions.
+        """
+        epsilon = self.config.epsilon
+        q_s = self.q_table[state]
+        n_actions = q_s.shape[0]
+
+        max_q = np.max(q_s)
+        greedy_actions = np.flatnonzero(q_s == max_q)
+        n_greedy = greedy_actions.size
+
+        # Base exploration prob for every action
+        p = np.full(n_actions, epsilon / n_actions, dtype=np.float64)
+
+        # Add the (1-eps) greedy mass split among greedy actions
+        p[greedy_actions] += (1.0 - epsilon) / n_greedy
+
+        return float(np.dot(p, q_s))
+
     def train(self, env, num_episodes: int) -> Dict[str, Dict[str, List[float]]]:
         reward_metrics = self.config.reward_metrics or {}
         td_error_metrics = self.config.td_error_metrics or {}
         reward_metrics_log: Dict[str, List[float]] = {
             name: [] for name in reward_metrics
         }
-        td_error_metrics_log: Dict[str, List[float]] = {
-            name: [] for name in td_error_metrics
-        }
+        td_error_metrics_log: Dict[str, List[float]] = {}
+        for name in td_error_metrics:
+            td_error_metrics_log[name] = []
+            td_error_metrics_log[f"{name}_v"] = []
 
         n_states = env.observation_space.n
         n_actions = env.action_space.n
@@ -68,6 +90,7 @@ class SarsaTD0VariantAgent:
             action = self._epsilon_greedy(state, epsilon)
             episode_rewards: List[float] = []
             episode_td_errors: List[float] = []
+            episode_td_errors_v: List[float] = []
             done = False
 
             while not done:
@@ -89,13 +112,25 @@ class SarsaTD0VariantAgent:
                     + self.config.lower_expectations
                 )
 
+                # calculate td_error from the state-value function V
+                if done:
+                    v_next = 0.0
+                else:
+                    v_next = self._v_from_q_eps_greedy(next_state)
+
+                v_state = self._v_from_q_eps_greedy(state)
+                td_error_v = float(reward) + self.config.gamma * v_next - v_state
+
+                # Update Q-values with the td error
                 if td_error > 0:
                     self.q_table[state, action] += self.config.alpha_positive * td_error
                 else:
                     self.q_table[state, action] += self.config.alpha_negative * td_error
 
+                # append errors to lists
                 episode_rewards.append(float(reward))
                 episode_td_errors.append(float(td_error))
+                episode_td_errors_v.append(float(td_error_v))
 
                 if not done:
                     state, action = next_state, next_action
@@ -104,6 +139,7 @@ class SarsaTD0VariantAgent:
                 reward_metrics_log[name].append(float(fn(episode_rewards)))
             for name, fn in td_error_metrics.items():
                 td_error_metrics_log[name].append(float(fn(episode_td_errors)))
+                td_error_metrics_log[f"{name}_v"].append(float(fn(episode_td_errors_v)))
 
         episode_metrics: Dict[str, Dict[str, List[float]]] = {
             "reward": reward_metrics_log,
