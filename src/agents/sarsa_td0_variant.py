@@ -10,7 +10,6 @@ import numpy as np
 class SarsaTD0VariantConfig:
     alpha_positive: float = 0.1
     alpha_negative: float = 0.1
-    lower_expectations: float = 0.0
     gamma: float = 0.99
     epsilon: float = 0.1
     initial_q_table: Optional[np.ndarray] = None
@@ -106,11 +105,7 @@ class SarsaTD0VariantAgent:
                         + self.config.gamma * self.q_table[next_state, next_action]
                     )
 
-                td_error = (
-                    td_target
-                    - self.q_table[state, action]
-                    + self.config.lower_expectations
-                )
+                td_error = td_target - self.q_table[state, action]
 
                 # calculate td_error from the state-value function V
                 if done:
