@@ -14,6 +14,8 @@ class SarsaTD0VariantConfig:
     epsilon: float = 0.1
     initial_q_table: Optional[np.ndarray] = None
     initial_q_table_label: str = "zeros"
+    confirmation_gain: float = 1.0  # >1 strengthens confirmatory updates
+    disconfirmation_gain: float = 1.0  # <1 weakens disconfirmatory updates
     seed: Optional[int] = None
     reward_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
     td_error_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
@@ -107,7 +109,26 @@ class SarsaTD0VariantAgent:
 
                 td_error = td_target - self.q_table[state, action]
 
-                # calculate td_error from the state-value function V
+                # check whether the update is confirmatory or disconfirmatory
+                q_sa = self.q_table[state, action]
+                confirmatory = td_error * q_sa >= 0
+
+                # Base learning rate from TD-error valence
+                if td_error > 0:
+                    alpha = self.config.alpha_positive
+                else:
+                    alpha = self.config.alpha_negative
+
+                # Apply confirmation bias
+                if confirmatory:
+                    alpha *= self.config.confirmation_gain
+                else:
+                    alpha *= self.config.disconfirmation_gain
+
+                # TD update
+                self.q_table[state, action] += alpha * td_error
+
+                # calculate td_error for the state-value function V
                 if done:
                     v_next = 0.0
                 else:
@@ -115,12 +136,6 @@ class SarsaTD0VariantAgent:
 
                 v_state = self._v_from_q_eps_greedy(state)
                 td_error_v = float(reward) + self.config.gamma * v_next - v_state
-
-                # Update Q-values with the td error
-                if td_error > 0:
-                    self.q_table[state, action] += self.config.alpha_positive * td_error
-                else:
-                    self.q_table[state, action] += self.config.alpha_negative * td_error
 
                 # append errors to lists
                 episode_rewards.append(float(reward))
