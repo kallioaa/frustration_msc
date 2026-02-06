@@ -1,46 +1,38 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional
 
 import numpy as np
 
 
 @dataclass
-class SarsaTD0VariantConfig:
-    alpha_positive: float = 0.1
-    alpha_negative: float = 0.1
+class SarsaTD0ConfirmationBiasConfig:
+    alpha_conf: float = 0.1
+    alpha_disconf: float = 0.05
     gamma: float = 0.99
     epsilon: float = 0.1
     initial_q_table: Optional[np.ndarray] = None
     initial_q_table_label: str = "zeros"
-    confirmation_gain: float = 1.0  # >1 strengthens confirmatory updates
-    disconfirmation_gain: float = 1.0  # <1 weakens disconfirmatory updates
     seed: Optional[int] = None
     reward_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
     td_error_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
 
 
-class SarsaTD0VariantAgent:
-
-    def __init__(self, config: SarsaTD0VariantConfig | dict):
+class SarsaTD0ConfirmationBiasAgent:
+    def __init__(self, config: SarsaTD0ConfirmationBiasConfig | dict):
         if isinstance(config, dict):
-            config = SarsaTD0VariantConfig(**config)
+            config = SarsaTD0ConfirmationBiasConfig(**config)
         self.config = config
         self.q_table: Optional[np.ndarray] = None
         self._rng = np.random.default_rng(config.seed)
 
-    # Returns a tuple (was_greedy, action)
     def _epsilon_greedy(self, state: int, epsilon: float) -> int:
         if self._rng.random() < epsilon:
             return int(self._rng.integers(self.q_table.shape[1]))
         return int(np.argmax(self.q_table[state]))
 
     def _v_from_q_eps_greedy(self, state: int) -> float:
-        """
-        Compute V_pi(state) = E_{a~pi}[Q(state,a)] for an epsilon-greedy policy.
-        Tie-aware: splits greedy mass across all argmax actions.
-        """
         epsilon = self.config.epsilon
         q_s = self.q_table[state]
         n_actions = q_s.shape[0]
@@ -49,10 +41,7 @@ class SarsaTD0VariantAgent:
         greedy_actions = np.flatnonzero(q_s == max_q)
         n_greedy = greedy_actions.size
 
-        # Base exploration prob for every action
         p = np.full(n_actions, epsilon / n_actions, dtype=np.float64)
-
-        # Add the (1-eps) greedy mass split among greedy actions
         p[greedy_actions] += (1.0 - epsilon) / n_greedy
 
         return float(np.dot(p, q_s))
@@ -80,14 +69,13 @@ class SarsaTD0VariantAgent:
                 )
             self.q_table = q_table.copy()
 
-        # Seed once for reproducibility (optional)
         if self.config.seed is not None:
             env.reset(seed=self.config.seed)
 
         epsilon = self.config.epsilon
 
         for _ in range(num_episodes):
-            state, _info = env.reset()  # don't reseed every episode
+            state, _info = env.reset()
             action = self._epsilon_greedy(state, epsilon)
             episode_rewards: List[float] = []
             episode_td_errors: List[float] = []
@@ -108,27 +96,13 @@ class SarsaTD0VariantAgent:
                     )
 
                 td_error = td_target - self.q_table[state, action]
-
-                # check whether the update is confirmatory or disconfirmatory
-                q_sa = self.q_table[state, action]
-                confirmatory = td_error * q_sa >= 0
-
-                # Base learning rate from TD-error valence
-                if td_error > 0:
-                    alpha = self.config.alpha_positive
-                else:
-                    alpha = self.config.alpha_negative
-
-                # Apply confirmation bias
-                if confirmatory:
-                    alpha *= self.config.confirmation_gain
-                else:
-                    alpha *= self.config.disconfirmation_gain
-
-                # TD update
+                a_star = int(np.argmax(self.q_table[state]))
+                confirm = (action == a_star and td_error > 0.0) or (
+                    action != a_star and td_error < 0.0
+                )
+                alpha = self.config.alpha_conf if confirm else self.config.alpha_disconf
                 self.q_table[state, action] += alpha * td_error
 
-                # calculate td_error for the state-value function V
                 if done:
                     v_next = 0.0
                 else:
@@ -137,7 +111,6 @@ class SarsaTD0VariantAgent:
                 v_state = self._v_from_q_eps_greedy(state)
                 td_error_v = float(reward) + self.config.gamma * v_next - v_state
 
-                # append errors to lists
                 episode_rewards.append(float(reward))
                 episode_td_errors.append(float(td_error))
                 episode_td_errors_v.append(float(td_error_v))
