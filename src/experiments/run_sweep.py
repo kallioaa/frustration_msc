@@ -22,6 +22,7 @@ from plots.td_error_plots import (
     plot_moving_average_td_errors_multi,
     plot_moving_average_td_errors_neg_multi,
 )
+import numpy as np
 
 
 def iter_grid(sweep: Dict[str, list[Any]]) -> list[Dict[str, Any]]:
@@ -106,29 +107,55 @@ def plot_sweep_training(
     won_series: Dict[str, list[float]] = {}
     td_error_series: Dict[str, list[float]] = {}
     frustration_rate_series: Dict[str, list[float]] = {}
-    label_counts: Dict[str, int] = {}
+
+    grouped: Dict[tuple, Dict[str, Any]] = {}
 
     for result in results:
         params = result.get("params", {})
+        grouped_params = _strip_seed(params)
+        key = _freeze(grouped_params)
+
         training = result.get("training", {})
         reward_metrics = training.get("reward", {})
         td_error_metrics = training.get("td_error", {})
+
+        entry = grouped.setdefault(
+            key,
+            {
+                "params": grouped_params,
+                "returns": [],
+                "episode_won": [],
+                "td_error": [],
+                "frustration_rate": [],
+            },
+        )
+
         returns = reward_metrics.get("total_reward_per_episode")
         episode_won = reward_metrics.get("episode_won")
         total_td_error = td_error_metrics.get("total_td_error_per_episode")
         frustration_rate = td_error_metrics.get("frustration_rate_per_episode")
 
-        label = label_fn(params) if label_fn else _format_sweep_label(params)
-        label = _unique_label(label, label_counts)
-
         if plot_returns and returns is not None:
-            returns_series[label] = returns
+            entry["returns"].append(returns)
         if plot_episode_won and episode_won is not None:
-            won_series[label] = episode_won
+            entry["episode_won"].append(episode_won)
         if plot_td_errors and total_td_error is not None:
-            td_error_series[label] = total_td_error
+            entry["td_error"].append(total_td_error)
         if plot_frustration_rate and frustration_rate is not None:
-            frustration_rate_series[label] = frustration_rate
+            entry["frustration_rate"].append(frustration_rate)
+
+    for entry in grouped.values():
+        params = entry["params"]
+        label = label_fn(params) if label_fn else _format_sweep_label(params)
+
+        if plot_returns and entry["returns"]:
+            returns_series[label] = _mean_series(entry["returns"])
+        if plot_episode_won and entry["episode_won"]:
+            won_series[label] = _mean_series(entry["episode_won"])
+        if plot_td_errors and entry["td_error"]:
+            td_error_series[label] = _mean_series(entry["td_error"])
+        if plot_frustration_rate and entry["frustration_rate"]:
+            frustration_rate_series[label] = _mean_series(entry["frustration_rate"])
 
     if plot_returns and returns_series:
         plot_moving_average_returns_multi(returns_series, window=window_size)
@@ -147,20 +174,30 @@ def plot_sweep_evaluation(
     label_fn: Callable[[Dict[str, Any]], str] | None = None,
 ) -> None:
     """Plot evaluation summaries for sweep runs."""
-    labels: list[str] = []
-    values: list[float] = []
-    label_counts: Dict[str, int] = {}
+    grouped: Dict[tuple, Dict[str, Any]] = {}
 
     for result in results:
         params = result.get("params", {})
+        grouped_params = _strip_seed(params)
+        key = _freeze(grouped_params)
+
         evaluation = result.get("evaluation", {}).get("eval", {})
         win_rate = evaluation.get("win_rate")
         if win_rate is None:
             continue
+
+        entry = grouped.setdefault(
+            key, {"params": grouped_params, "win_rates": []}
+        )
+        entry["win_rates"].append(float(win_rate))
+
+    labels: list[str] = []
+    values: list[float] = []
+    for entry in grouped.values():
+        params = entry["params"]
         label = label_fn(params) if label_fn else _format_sweep_label(params)
-        label = _unique_label(label, label_counts)
         labels.append(label)
-        values.append(float(win_rate))
+        values.append(float(np.mean(entry["win_rates"])))
 
     plot_sweep_win_rate_bar(labels, values)
 
@@ -194,10 +231,37 @@ def _format_sweep_label(params: Dict[str, Any]) -> str:
     return " | ".join(parts) if parts else "run"
 
 
-def _unique_label(label: str, counts: Dict[str, int]) -> str:
-    """Ensure labels are unique across series."""
-    if label not in counts:
-        counts[label] = 1
-        return label
-    counts[label] += 1
-    return f"{label} #{counts[label]}"
+def _strip_seed(params: Dict[str, Any]) -> Dict[str, Any]:
+    """Return params without seed keys for grouping/labeling."""
+    agent_kwargs = dict(params.get("agent_kwargs") or {})
+    env_kwargs = dict(params.get("env_kwargs") or {})
+
+    agent_kwargs.pop("seed", None)
+    env_kwargs.pop("seed", None)
+
+    stripped: Dict[str, Any] = {}
+    if agent_kwargs:
+        stripped["agent_kwargs"] = agent_kwargs
+    if env_kwargs:
+        stripped["env_kwargs"] = env_kwargs
+    return stripped
+
+
+def _freeze(value: Any) -> Any:
+    """Make a nested structure hashable for dict keys."""
+    if isinstance(value, dict):
+        return tuple(sorted((k, _freeze(v)) for k, v in value.items()))
+    if isinstance(value, np.ndarray):
+        return ("__ndarray__", value.shape, str(value.dtype), value.tobytes())
+    if isinstance(value, list):
+        return tuple(_freeze(item) for item in value)
+    return value
+
+
+def _mean_series(series_list: list[list[float]]) -> list[float]:
+    """Element-wise mean of multiple series, truncating to shortest."""
+    min_len = min(len(series) for series in series_list)
+    if min_len == 0:
+        return []
+    stacked = np.array([series[:min_len] for series in series_list], dtype=float)
+    return list(np.mean(stacked, axis=0))

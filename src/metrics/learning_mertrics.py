@@ -24,3 +24,10 @@ def episode_won_cliffwalking(
     if not rewards:
         return 0.0
     return 1.0 if min(rewards) > cliff_penalty else 0.0
+
+
+def episode_won_taxi_v3(rewards: list[float], win_threshold: float = 20.0) -> float:
+    """Return 1.0 if the last reward indicates a successful dropoff, else 0.0."""
+    if not rewards:
+        return 0.0
+    return 1.0 if rewards[-1] >= win_threshold else 0.0

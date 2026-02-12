@@ -8,8 +8,7 @@ import numpy as np
 
 @dataclass
 class SarsaTD0PositivityBiasConfig:
-    alpha_positive: float = 0.1
-    alpha_negative: float = 0.1
+    alpha: float = 0.1
     gamma: float = 0.99
     epsilon: float = 0.1
     initial_q_table: Optional[np.ndarray] = None
@@ -107,14 +106,8 @@ class SarsaTD0PositivityBiasAgent:
 
                 td_error = td_target - self.q_table[state, action]
 
-                # Base learning rate from TD-error valence
-                if td_error > 0:
-                    alpha = self.config.alpha_positive
-                else:
-                    alpha = self.config.alpha_negative
-
-                # TD update
-                self.q_table[state, action] += alpha * td_error
+                # TD update (single learning rate)
+                self.q_table[state, action] += self.config.alpha * td_error
 
                 # calculate td_error for the state-value function V
                 if done:
