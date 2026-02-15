@@ -211,4 +211,4 @@ runs/
 src/prod_notebooks/runs/runs.jsonl
 
 .DS_Store
-.pkl
+*.pkl
