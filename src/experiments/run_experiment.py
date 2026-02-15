@@ -2,28 +2,13 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime
-import itertools
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
-import numpy as np
 from evaluation.evaluator import evaluator
 from environments.fronzenlake import get_frozenlake_env
-from plots.reward_plots import (
-    plot_moving_average_episode_won,
-    plot_moving_average_returns,
-)
-from plots.td_error_plots import (
-    plot_moving_average_td_errors,
-    plot_moving_average_td_errors_neg_and_pos,
-    plot_frustration_quantiles,
-    plot_frustration_rate,
-    plot_tail_frustration,
-    plot_cvar_tail_frustration,
-)
 
 
 @dataclass
@@ -44,6 +29,7 @@ class EvaluateConfig:
     num_eval_episodes: int = 1000
     seed: int | None = 0
     env_kwargs: Dict[str, Any] = None
+    evaluation_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
 
 
 def _timestamp() -> str:
@@ -75,7 +61,11 @@ def run_evaluation(
     env = env_factory(**env_kwargs)
 
     eval_metrics = evaluator(
-        env, agent, num_episodes=config.num_eval_episodes, seed=config.seed
+        env,
+        agent,
+        num_episodes=config.num_eval_episodes,
+        seed=config.seed,
+        evaluation_metrics=config.evaluation_metrics,
     )
 
     config_dict = asdict(config)
@@ -86,46 +76,3 @@ def run_evaluation(
     }
 
     return evaluation_metrics
-
-
-def generate_training_plots(
-    training_metrics: Dict[str, Any],
-    window_size: int = 100,
-) -> None:
-    """Generate plots from per-episode metrics."""
-    total_reward_per_episode = training_metrics.get("reward", {}).get(
-        "total_reward_per_episode"
-    )
-    episode_won_per_episode = training_metrics.get("reward", {}).get("episode_won")
-    total_td_error_per_episode = training_metrics.get("td_error", {}).get(
-        "total_td_error_per_episode"
-    )
-    if total_reward_per_episode is not None:
-        plot_moving_average_returns(total_reward_per_episode, window=window_size)
-    if episode_won_per_episode is not None:
-        plot_moving_average_episode_won(episode_won_per_episode, window=window_size)
-    if total_td_error_per_episode is not None:
-        plot_moving_average_td_errors(total_td_error_per_episode, window=window_size)
-        plot_moving_average_td_errors_neg_and_pos(
-            total_td_error_per_episode, window=window_size
-        )
-        plot_frustration_quantiles(total_td_error_per_episode, window=window_size)
-
-    frustration_rate_per_episode = training_metrics.get("td_error", {}).get(
-        "frustration_rate_per_episode"
-    )
-    tail_frustration_per_episode = training_metrics.get("td_error", {}).get(
-        "tail_frustration_per_episode"
-    )
-    cvar_tail_frustration_per_episode = training_metrics.get("td_error", {}).get(
-        "cvar_tail_frustration_per_episode"
-    )
-
-    if frustration_rate_per_episode is not None:
-        plot_frustration_rate(frustration_rate_per_episode, window=window_size)
-    if tail_frustration_per_episode is not None:
-        plot_tail_frustration(tail_frustration_per_episode, window=window_size)
-    if cvar_tail_frustration_per_episode is not None:
-        plot_cvar_tail_frustration(
-            cvar_tail_frustration_per_episode, window=window_size
-        )

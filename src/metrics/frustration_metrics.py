@@ -10,6 +10,13 @@ def total_td_error_per_episode(td_errors: list[float]) -> float:
     return float(sum(td_errors))
 
 
+def mean_absolute_td_error_per_episode(td_errors: list[float]) -> float:
+    """Return the mean absolute TD error for an episode."""
+    if not td_errors:
+        return 0.0
+    return float(sum(abs(float(td_error)) for td_error in td_errors) / len(td_errors))
+
+
 def frustration_rate_per_episode(td_errors: list[float]) -> float:
     """Return the percentage of negative td_errors"""
     if not td_errors:
@@ -18,8 +25,24 @@ def frustration_rate_per_episode(td_errors: list[float]) -> float:
     n = len(td_errors)
     n_negative = sum(1 for td_error in td_errors if td_error < 0)
 
-    result = n_negative / n
+    result = n_negative / n if n > 0 else 0.0
     return result
+
+
+def mean_negative_td_error_per_episode(td_errors: list[float]) -> float:
+    """Return the mean of negative TD errors for an episode."""
+    negative_errors = [float(td_error) for td_error in td_errors if td_error < 0]
+    if not negative_errors:
+        return 0.0
+
+    return sum(negative_errors) / len(negative_errors)
+
+
+def negative_td_error_sum_per_episode(td_errors: list[float]) -> float:
+    """Return the accumulated negative TD error over an episode."""
+    if not td_errors:
+        return 0.0
+    return float(sum(td_error for td_error in td_errors if td_error < 0))
 
 
 def tail_frustration_per_episode(
