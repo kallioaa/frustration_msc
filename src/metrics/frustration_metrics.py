@@ -4,6 +4,25 @@ from __future__ import annotations
 
 import math
 
+from typing import Any
+
+
+def frustration_metrics_specs() -> dict[str, Any]:
+    frustration_metrics = {
+        "total_td_error_per_episode": total_td_error_per_episode,
+        "mean_negative_td_error_per_episode": mean_negative_td_error_per_episode,
+        "mean_absolute_td_error_per_episode": mean_absolute_td_error_per_episode,
+        "negative_td_error_sum_per_episode": negative_td_error_sum_per_episode,
+        "frustration_rate_per_episode": frustration_rate_per_episode,
+        "tail_frustration_per_episode": lambda td: tail_frustration_per_episode(
+            td, percentile=0.90
+        ),
+        "cvar_tail_frustration_per_episode": lambda td: cvar_tail_frustration_per_episode(
+            td, percentile=0.90
+        ),
+    }
+    return frustration_metrics
+
 
 def total_td_error_per_episode(td_errors: list[float]) -> float:
     """Return the total TD error for an episode."""

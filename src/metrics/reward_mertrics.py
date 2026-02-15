@@ -2,7 +2,40 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
+
+
+def frozenlake_reward_metrics_specs() -> dict[str, Any]:
+    """Return default reward metric specs for FrozenLake."""
+    reward_metrics = {
+        "total_reward_per_episode": total_reward_per_episode,
+        "episode_length_per_episode": episode_length_per_episode,
+        "episode_won": episode_won_frozenlake,
+    }
+    return reward_metrics
+
+
+def cliffwalking_reward_metrics_specs() -> dict[str, Any]:
+    """Return default reward metric specs for CliffWalking."""
+    reward_metrics = {
+        "total_reward_per_episode": total_reward_per_episode,
+        "episode_length_per_episode": episode_length_per_episode,
+        "episode_won": episode_won_cliffwalking,
+        "cliff_falls_per_episode": cliff_falls_per_episode,
+        "cliff_fall_rate_per_episode": cliff_fall_rate_per_episode,
+    }
+    return reward_metrics
+
+
+def taxi_v3_reward_metrics_specs() -> dict[str, Any]:
+    """Return default reward metric specs for Taxi-v3."""
+    reward_metrics = {
+        "total_reward_per_episode": total_reward_per_episode,
+        "episode_length_per_episode": episode_length_per_episode,
+        "episode_won": episode_won_taxi_v3,
+        "taxi_illegal_actions_per_episode": taxi_illegal_actions_per_episode,
+    }
+    return reward_metrics
 
 
 def total_reward_per_episode(rewards: list[float]) -> float:

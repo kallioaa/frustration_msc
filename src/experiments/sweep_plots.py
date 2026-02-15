@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, Callable, Dict
 
 import numpy as np
-from plots.training_plots import plot_moving_average_multi
 
 
 def plot_sweep_training(
@@ -98,12 +97,13 @@ def plot_sweep_evaluation(
     """Plot evaluation curves from sweep results using metric plot specs."""
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
-    metric_specs: list[tuple[str, str, str, str]] = []
+    metric_specs: list[tuple[str, str, str, str, Callable[..., Any]]] = []
     for spec in plot_specs:
         key = spec.get("key")
         ylabel = spec.get("ylabel")
         title = spec.get("title")
         xlabel = spec.get("xlabel", "Episode")
+        plot_fn = spec.get("plot_fn")
         if not isinstance(key, str) or not key:
             raise ValueError("Each plot spec must include a non-empty string key")
         if not isinstance(ylabel, str) or not ylabel:
@@ -114,7 +114,9 @@ def plot_sweep_evaluation(
             raise ValueError(f"Each plot spec must include a non-empty title for {key}")
         if not isinstance(xlabel, str) or not xlabel:
             raise ValueError(f"xlabel must be a non-empty string for {key}")
-        metric_specs.append((key, ylabel, title, xlabel))
+        if not callable(plot_fn):
+            raise ValueError(f"Each plot spec must include callable plot_fn for {key}")
+        metric_specs.append((key, ylabel, title, xlabel, plot_fn))
 
     grouped: Dict[tuple, Dict[str, Any]] = {}
 
@@ -132,14 +134,14 @@ def plot_sweep_evaluation(
             },
         )
 
-        for metric_key, _, _, _ in metric_specs:
+        for metric_key, _, _, _, _ in metric_specs:
             values = evaluation.get(metric_key)
             if values is None:
                 continue
             metric_runs = entry["metric_runs"].setdefault(metric_key, [])
             metric_runs.append(values)
 
-    for metric_key, ylabel, title, xlabel in metric_specs:
+    for metric_key, ylabel, title, xlabel, plot_fn in metric_specs:
         series_by_label: Dict[str, list[float]] = {}
         for entry in grouped.values():
             runs = entry["metric_runs"].get(metric_key, [])
@@ -149,7 +151,7 @@ def plot_sweep_evaluation(
             label = label_fn(params) if label_fn else _format_sweep_label(params)
             series_by_label[label] = _mean_series(runs)
         if series_by_label:
-            plot_moving_average_multi(
+            plot_fn(
                 series_by_label,
                 window=window_size,
                 ylabel=ylabel,

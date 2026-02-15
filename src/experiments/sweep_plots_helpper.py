@@ -186,74 +186,85 @@ def frozenlake_training_plot_specs() -> list[dict[str, Any]]:
     ]
 
 
-def taxi_evaluation_plot_specs() -> list[dict[str, str]]:
+def taxi_evaluation_plot_specs() -> list[dict[str, Any]]:
     """Return default evaluation plot specs for Taxi-v3."""
     return [
         {
             "key": "total_reward_per_episode",
             "ylabel": "Return",
             "title": "Taxi-v3 Evaluation: Episode Return",
+            "plot_fn": plot_moving_average_multi,
         },
         {
             "key": "episode_length_per_episode",
             "ylabel": "Episode Length",
             "title": "Taxi-v3 Evaluation: Episode Length",
+            "plot_fn": plot_moving_average_multi,
         },
         {
             "key": "episode_won",
             "ylabel": "Success Rate",
             "title": "Taxi-v3 Evaluation: Episode Success",
+            "plot_fn": plot_moving_average_multi,
         },
         {
             "key": "taxi_illegal_actions_per_episode",
             "ylabel": "Illegal Actions",
             "title": "Taxi-v3 Evaluation: Illegal Pickup/Drop-off Actions",
+            "plot_fn": plot_moving_average_multi,
         },
     ]
 
 
-def cliffwalking_evaluation_plot_specs() -> list[dict[str, str]]:
+def cliffwalking_evaluation_plot_specs() -> list[dict[str, Any]]:
     """Return default evaluation plot specs for CliffWalking."""
     return [
         {
             "key": "total_reward_per_episode",
             "ylabel": "Return",
             "title": "CliffWalking Evaluation: Episode Return",
+            "plot_fn": plot_moving_average_multi,
         },
         {
             "key": "episode_length_per_episode",
             "ylabel": "Episode Length",
             "title": "CliffWalking Evaluation: Episode Length",
+            "plot_fn": plot_moving_average_multi,
         },
         {
             "key": "cliff_falls_per_episode",
             "ylabel": "Cliff Falls",
             "title": "CliffWalking Evaluation: Falls Per Episode",
+            "plot_fn": plot_moving_average_multi,
         },
         {
             "key": "cliff_fall_rate_per_episode",
             "ylabel": "Cliff Fall Rate",
             "title": "CliffWalking Evaluation: Cliff-Fall Rate",
+            "plot_fn": plot_moving_average_multi,
         },
     ]
 
 
-def frozenlake_evaluation_plot_specs() -> list[dict[str, str]]:
+def frozenlake_evaluation_plot_specs() -> list[dict[str, Any]]:
     """Return default evaluation plot specs for FrozenLake."""
     return [
         {
             "key": "total_reward_per_episode",
             "ylabel": "Return",
             "title": "FrozenLake Evaluation: Episode Return",
+            "plot_fn": plot_moving_average_multi,
         },
         {
             "key": "episode_length_per_episode",
             "ylabel": "Episode Length",
             "title": "FrozenLake Evaluation: Episode Length",
+            "plot_fn": plot_moving_average_multi,
         },
         {
             "key": "episode_won",
             "ylabel": "Success Rate",
             "title": "FrozenLake Evaluation: Episode Success",
+            "plot_fn": plot_moving_average_multi,
         },
     ]
