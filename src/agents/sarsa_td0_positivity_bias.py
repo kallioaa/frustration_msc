@@ -65,6 +65,7 @@ class SarsaTD0PositivityBiasAgent:
         for name in td_error_metrics:
             td_error_metrics_log[name] = []
             td_error_metrics_log[f"{name}_v"] = []
+        td_error_metrics_log["positive_lr_update_ratio_per_episode"] = []
 
         n_states = env.observation_space.n
         n_actions = env.action_space.n
@@ -90,6 +91,8 @@ class SarsaTD0PositivityBiasAgent:
             episode_rewards: List[float] = []
             episode_td_errors: List[float] = []
             episode_td_errors_v: List[float] = []
+            episode_positive_lr_updates = 0
+            episode_negative_lr_updates = 0
             done = False
 
             while not done:
@@ -110,8 +113,10 @@ class SarsaTD0PositivityBiasAgent:
                 # Base learning rate from TD-error valence
                 if td_error > 0:
                     alpha = self.config.alpha_positive
+                    episode_positive_lr_updates += 1
                 else:
                     alpha = self.config.alpha_negative
+                    episode_negative_lr_updates += 1
 
                 # TD update
                 self.q_table[state, action] += alpha * td_error
@@ -138,6 +143,15 @@ class SarsaTD0PositivityBiasAgent:
             for name, fn in td_error_metrics.items():
                 td_error_metrics_log[name].append(float(fn(episode_td_errors)))
                 td_error_metrics_log[f"{name}_v"].append(float(fn(episode_td_errors_v)))
+            total_updates = episode_positive_lr_updates + episode_negative_lr_updates
+            positive_lr_update_ratio = (
+                (episode_positive_lr_updates / total_updates)
+                if total_updates > 0
+                else 0.0
+            )
+            td_error_metrics_log["positive_lr_update_ratio_per_episode"].append(
+                float(positive_lr_update_ratio)
+            )
 
         episode_metrics: Dict[str, Dict[str, List[float]]] = {
             "reward": reward_metrics_log,

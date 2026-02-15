@@ -66,6 +66,20 @@ def taxi_training_plot_specs() -> list[dict[str, Any]]:
             "title": "Taxi-v3: Frustration Rate",
             "plot_fn": plot_moving_average_multi,
         },
+        {
+            "source": "td_error",
+            "key": "confirmatory_update_ratio_per_episode",
+            "ylabel": "Confirmatory Update Ratio",
+            "title": "Taxi-v3: Confirmatory Update Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "positive_lr_update_ratio_per_episode",
+            "ylabel": "Positive-LR Update Ratio",
+            "title": "Taxi-v3: Positive-LR Update Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
     ]
 
 
@@ -128,6 +142,20 @@ def cliffwalking_training_plot_specs() -> list[dict[str, Any]]:
             "title": "CliffWalking: Frustration Rate",
             "plot_fn": plot_moving_average_multi,
         },
+        {
+            "source": "td_error",
+            "key": "confirmatory_update_ratio_per_episode",
+            "ylabel": "Confirmatory Update Ratio",
+            "title": "CliffWalking: Confirmatory Update Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "positive_lr_update_ratio_per_episode",
+            "ylabel": "Positive-LR Update Ratio",
+            "title": "CliffWalking: Positive-LR Update Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
     ]
 
 
@@ -181,6 +209,20 @@ def frozenlake_training_plot_specs() -> list[dict[str, Any]]:
             "key": "frustration_rate_per_episode",
             "ylabel": "Frustration Rate",
             "title": "FrozenLake: Frustration Rate",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "confirmatory_update_ratio_per_episode",
+            "ylabel": "Confirmatory Update Ratio",
+            "title": "FrozenLake: Confirmatory Update Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "positive_lr_update_ratio_per_episode",
+            "ylabel": "Positive-LR Update Ratio",
+            "title": "FrozenLake: Positive-LR Update Ratio",
             "plot_fn": plot_moving_average_multi,
         },
     ]

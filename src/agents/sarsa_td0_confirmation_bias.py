@@ -56,6 +56,7 @@ class SarsaTD0ConfirmationBiasAgent:
         for name in td_error_metrics:
             td_error_metrics_log[name] = []
             td_error_metrics_log[f"{name}_v"] = []
+        td_error_metrics_log["confirmatory_update_ratio_per_episode"] = []
 
         n_states = env.observation_space.n
         n_actions = env.action_space.n
@@ -80,6 +81,8 @@ class SarsaTD0ConfirmationBiasAgent:
             episode_rewards: List[float] = []
             episode_td_errors: List[float] = []
             episode_td_errors_v: List[float] = []
+            episode_confirmatory_updates = 0
+            episode_disconfirmatory_updates = 0
             done = False
 
             while not done:
@@ -101,6 +104,10 @@ class SarsaTD0ConfirmationBiasAgent:
                     action != a_star and td_error < 0.0
                 )
                 alpha = self.config.alpha_conf if confirm else self.config.alpha_disconf
+                if confirm:
+                    episode_confirmatory_updates += 1
+                else:
+                    episode_disconfirmatory_updates += 1
                 self.q_table[state, action] += alpha * td_error
 
                 if done:
@@ -123,6 +130,17 @@ class SarsaTD0ConfirmationBiasAgent:
             for name, fn in td_error_metrics.items():
                 td_error_metrics_log[name].append(float(fn(episode_td_errors)))
                 td_error_metrics_log[f"{name}_v"].append(float(fn(episode_td_errors_v)))
+            total_updates = (
+                episode_confirmatory_updates + episode_disconfirmatory_updates
+            )
+            confirmatory_ratio = (
+                (episode_confirmatory_updates / total_updates)
+                if total_updates > 0
+                else 0.0
+            )
+            td_error_metrics_log["confirmatory_update_ratio_per_episode"].append(
+                float(confirmatory_ratio)
+            )
 
         episode_metrics: Dict[str, Dict[str, List[float]]] = {
             "reward": reward_metrics_log,
