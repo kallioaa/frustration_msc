@@ -12,6 +12,8 @@ def plot_sweep_training(
     window_size: int = 100,
     label_fn: Callable[[Dict[str, Any]], str] | None = None,
     plot_specs: list[dict[str, Any]] | None = None,
+    start_episode: int = 0,
+    end_episode: int | None = None,
 ) -> None:
     """Plot training curves from sweep results using metric plot specs."""
     if not plot_specs:
@@ -85,6 +87,8 @@ def plot_sweep_training(
                 ylabel=ylabel,
                 title=title,
                 xlabel=xlabel,
+                start_episode=start_episode,
+                end_episode=end_episode,
             )
 
 
@@ -93,6 +97,8 @@ def plot_sweep_evaluation(
     window_size: int = 100,
     label_fn: Callable[[Dict[str, Any]], str] | None = None,
     plot_specs: list[dict[str, Any]] | None = None,
+    start_episode: int = 0,
+    end_episode: int | None = None,
 ) -> None:
     """Plot evaluation curves from sweep results using metric plot specs."""
     if not plot_specs:
@@ -157,6 +163,8 @@ def plot_sweep_evaluation(
                 ylabel=ylabel,
                 title=title,
                 xlabel=xlabel,
+                start_episode=start_episode,
+                end_episode=end_episode,
             )
 
 

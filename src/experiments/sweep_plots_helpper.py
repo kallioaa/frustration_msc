@@ -80,6 +80,34 @@ def taxi_training_plot_specs() -> list[dict[str, Any]]:
             "title": "Taxi-v3: Positive-LR Update Ratio",
             "plot_fn": plot_moving_average_multi,
         },
+        {
+            "source": "td_error",
+            "key": "confirmatory_greedy_positive_ratio_per_episode",
+            "ylabel": "Greedy+Positive Ratio",
+            "title": "Taxi-v3: Confirmatory Greedy+Positive Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "confirmatory_nongreedy_negative_ratio_per_episode",
+            "ylabel": "Non-Greedy+Negative Ratio",
+            "title": "Taxi-v3: Confirmatory Non-Greedy+Negative Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "disconfirmatory_greedy_negative_ratio_per_episode",
+            "ylabel": "Greedy+Negative Ratio",
+            "title": "Taxi-v3: Disconfirmatory Greedy+Negative Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "disconfirmatory_nongreedy_positive_ratio_per_episode",
+            "ylabel": "Non-Greedy+Positive Ratio",
+            "title": "Taxi-v3: Disconfirmatory Non-Greedy+Positive Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
     ]
 
 
@@ -156,6 +184,34 @@ def cliffwalking_training_plot_specs() -> list[dict[str, Any]]:
             "title": "CliffWalking: Positive-LR Update Ratio",
             "plot_fn": plot_moving_average_multi,
         },
+        {
+            "source": "td_error",
+            "key": "confirmatory_greedy_positive_ratio_per_episode",
+            "ylabel": "Greedy+Positive Ratio",
+            "title": "CliffWalking: Confirmatory Greedy+Positive Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "confirmatory_nongreedy_negative_ratio_per_episode",
+            "ylabel": "Non-Greedy+Negative Ratio",
+            "title": "CliffWalking: Confirmatory Non-Greedy+Negative Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "disconfirmatory_greedy_negative_ratio_per_episode",
+            "ylabel": "Greedy+Negative Ratio",
+            "title": "CliffWalking: Disconfirmatory Greedy+Negative Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "disconfirmatory_nongreedy_positive_ratio_per_episode",
+            "ylabel": "Non-Greedy+Positive Ratio",
+            "title": "CliffWalking: Disconfirmatory Non-Greedy+Positive Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
     ]
 
 
@@ -223,6 +279,34 @@ def frozenlake_training_plot_specs() -> list[dict[str, Any]]:
             "key": "positive_lr_update_ratio_per_episode",
             "ylabel": "Positive-LR Update Ratio",
             "title": "FrozenLake: Positive-LR Update Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "confirmatory_greedy_positive_ratio_per_episode",
+            "ylabel": "Greedy+Positive Ratio",
+            "title": "FrozenLake: Confirmatory Greedy+Positive Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "confirmatory_nongreedy_negative_ratio_per_episode",
+            "ylabel": "Non-Greedy+Negative Ratio",
+            "title": "FrozenLake: Confirmatory Non-Greedy+Negative Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "disconfirmatory_greedy_negative_ratio_per_episode",
+            "ylabel": "Greedy+Negative Ratio",
+            "title": "FrozenLake: Disconfirmatory Greedy+Negative Ratio",
+            "plot_fn": plot_moving_average_multi,
+        },
+        {
+            "source": "td_error",
+            "key": "disconfirmatory_nongreedy_positive_ratio_per_episode",
+            "ylabel": "Non-Greedy+Positive Ratio",
+            "title": "FrozenLake: Disconfirmatory Non-Greedy+Positive Ratio",
             "plot_fn": plot_moving_average_multi,
         },
     ]

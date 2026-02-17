@@ -57,6 +57,10 @@ class SarsaTD0ConfirmationBiasAgent:
             td_error_metrics_log[name] = []
             td_error_metrics_log[f"{name}_v"] = []
         td_error_metrics_log["confirmatory_update_ratio_per_episode"] = []
+        td_error_metrics_log["confirmatory_greedy_positive_ratio_per_episode"] = []
+        td_error_metrics_log["confirmatory_nongreedy_negative_ratio_per_episode"] = []
+        td_error_metrics_log["disconfirmatory_greedy_negative_ratio_per_episode"] = []
+        td_error_metrics_log["disconfirmatory_nongreedy_positive_ratio_per_episode"] = []
 
         n_states = env.observation_space.n
         n_actions = env.action_space.n
@@ -83,6 +87,10 @@ class SarsaTD0ConfirmationBiasAgent:
             episode_td_errors_v: List[float] = []
             episode_confirmatory_updates = 0
             episode_disconfirmatory_updates = 0
+            episode_confirmatory_greedy_positive_updates = 0
+            episode_confirmatory_nongreedy_negative_updates = 0
+            episode_disconfirmatory_greedy_negative_updates = 0
+            episode_disconfirmatory_nongreedy_positive_updates = 0
             done = False
 
             while not done:
@@ -100,6 +108,14 @@ class SarsaTD0ConfirmationBiasAgent:
 
                 td_error = td_target - self.q_table[state, action]
                 a_star = int(np.argmax(self.q_table[state]))
+                if action == a_star and td_error > 0.0:
+                    episode_confirmatory_greedy_positive_updates += 1
+                elif action != a_star and td_error < 0.0:
+                    episode_confirmatory_nongreedy_negative_updates += 1
+                elif action == a_star and td_error < 0.0:
+                    episode_disconfirmatory_greedy_negative_updates += 1
+                elif action != a_star and td_error > 0.0:
+                    episode_disconfirmatory_nongreedy_positive_updates += 1
                 confirm = (action == a_star and td_error > 0.0) or (
                     action != a_star and td_error < 0.0
                 )
@@ -138,9 +154,41 @@ class SarsaTD0ConfirmationBiasAgent:
                 if total_updates > 0
                 else 0.0
             )
+            confirmatory_greedy_positive_ratio = (
+                (episode_confirmatory_greedy_positive_updates / total_updates)
+                if total_updates > 0
+                else 0.0
+            )
+            confirmatory_nongreedy_negative_ratio = (
+                (episode_confirmatory_nongreedy_negative_updates / total_updates)
+                if total_updates > 0
+                else 0.0
+            )
+            disconfirmatory_greedy_negative_ratio = (
+                (episode_disconfirmatory_greedy_negative_updates / total_updates)
+                if total_updates > 0
+                else 0.0
+            )
+            disconfirmatory_nongreedy_positive_ratio = (
+                (episode_disconfirmatory_nongreedy_positive_updates / total_updates)
+                if total_updates > 0
+                else 0.0
+            )
             td_error_metrics_log["confirmatory_update_ratio_per_episode"].append(
                 float(confirmatory_ratio)
             )
+            td_error_metrics_log[
+                "confirmatory_greedy_positive_ratio_per_episode"
+            ].append(float(confirmatory_greedy_positive_ratio))
+            td_error_metrics_log[
+                "confirmatory_nongreedy_negative_ratio_per_episode"
+            ].append(float(confirmatory_nongreedy_negative_ratio))
+            td_error_metrics_log[
+                "disconfirmatory_greedy_negative_ratio_per_episode"
+            ].append(float(disconfirmatory_greedy_negative_ratio))
+            td_error_metrics_log[
+                "disconfirmatory_nongreedy_positive_ratio_per_episode"
+            ].append(float(disconfirmatory_nongreedy_positive_ratio))
 
         episode_metrics: Dict[str, Dict[str, List[float]]] = {
             "reward": reward_metrics_log,

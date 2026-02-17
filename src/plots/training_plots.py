@@ -12,20 +12,32 @@ def plot_moving_average_multi(
     ylabel: str = "Value",
     title: str = "Moving Average",
     xlabel: str = "Episode",
+    start_episode: int = 0,
+    end_episode: int | None = None,
 ) -> None:
     """Plot moving average for multiple parameter settings."""
     if window <= 0:
         raise ValueError("window must be a positive integer")
     if not series:
         raise ValueError("series must not be empty")
+    if start_episode < 0:
+        raise ValueError("start_episode must be >= 0")
+    if end_episode is not None and end_episode <= start_episode:
+        raise ValueError("end_episode must be greater than start_episode")
 
     plt.figure(figsize=(10, 6))
     for label, values in series.items():
+        episode_offset = start_episode
+        if start_episode or end_episode is not None:
+            values = values[start_episode:end_episode]
         if len(values) < window:
             raise ValueError(f"window is larger than the number of points for {label}")
         values_array = np.asarray(values, dtype=float)
         moving_avg = np.convolve(values_array, np.ones(window) / window, mode="valid")
-        x_values = np.arange(window - 1, len(values))
+        x_values = np.arange(
+            episode_offset + window - 1,
+            episode_offset + len(values),
+        )
         plt.plot(x_values, moving_avg, label=label)
 
     plt.xlabel(xlabel)
