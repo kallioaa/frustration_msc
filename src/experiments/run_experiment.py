@@ -9,6 +9,9 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 from evaluation.evaluator import evaluator
 from environments.fronzenlake import get_frozenlake_env
+from gymnasium.wrappers import TimeLimit
+
+MAX_EVAL_STEPS = 200
 
 
 @dataclass
@@ -59,6 +62,7 @@ def run_evaluation(
     """Evaluate a trained agent and return run-level results."""
     env_kwargs = config.env_kwargs or {}
     env = env_factory(**env_kwargs)
+    env = TimeLimit(env, max_episode_steps=MAX_EVAL_STEPS)
 
     eval_metrics = evaluator(
         env,
