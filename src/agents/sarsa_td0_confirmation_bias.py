@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
+from gymnasium.wrappers import TimeLimit
 
 
 @dataclass
@@ -17,6 +18,10 @@ class SarsaTD0ConfirmationBiasConfig:
     seed: Optional[int] = None
     reward_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
     td_error_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
+    eval_every_episodes: int = 0
+    mid_eval_episodes: int = 50
+    max_eval_steps: int = 200
+    mid_eval_seed: Optional[int] = 0
 
 
 class SarsaTD0ConfirmationBiasAgent:
@@ -46,7 +51,47 @@ class SarsaTD0ConfirmationBiasAgent:
 
         return float(np.dot(p, q_s))
 
-    def train(self, env, num_episodes: int) -> Dict[str, Dict[str, List[float]]]:
+    def _run_mid_eval(
+        self,
+        eval_env_factory: Callable[..., Any],
+        eval_env_kwargs: Optional[dict[str, Any]] = None,
+    ) -> Dict[str, float]:
+        eval_env_kwargs = eval_env_kwargs or {}
+        env = eval_env_factory(**eval_env_kwargs)
+        env = TimeLimit(env, max_episode_steps=self.config.max_eval_steps)
+
+        reward_metrics = self.config.reward_metrics or {}
+        logs: Dict[str, List[float]] = {name: [] for name in reward_metrics}
+
+        if self.config.mid_eval_seed is not None:
+            env.reset(seed=self.config.mid_eval_seed)
+
+        for _ in range(self.config.mid_eval_episodes):
+            state, _ = env.reset()
+            done = False
+            episode_rewards: List[float] = []
+
+            while not done:
+                action = self.act(state)
+                state, reward, terminated, truncated, _ = env.step(action)
+                done = terminated or truncated
+                episode_rewards.append(float(reward))
+
+            for name, fn in reward_metrics.items():
+                logs[name].append(float(fn(episode_rewards)))
+
+        return {
+            name: float(np.mean(values)) if values else 0.0
+            for name, values in logs.items()
+        }
+
+    def train(
+        self,
+        env,
+        num_episodes: int,
+        eval_env_factory: Optional[Callable[..., Any]] = None,
+        eval_env_kwargs: Optional[dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         reward_metrics = self.config.reward_metrics or {}
         td_error_metrics = self.config.td_error_metrics or {}
         reward_metrics_log: Dict[str, List[float]] = {
@@ -61,6 +106,7 @@ class SarsaTD0ConfirmationBiasAgent:
         td_error_metrics_log["confirmatory_nongreedy_negative_ratio_per_episode"] = []
         td_error_metrics_log["disconfirmatory_greedy_negative_ratio_per_episode"] = []
         td_error_metrics_log["disconfirmatory_nongreedy_positive_ratio_per_episode"] = []
+        mid_eval_log: List[Dict[str, float]] = []
 
         n_states = env.observation_space.n
         n_actions = env.action_space.n
@@ -79,7 +125,7 @@ class SarsaTD0ConfirmationBiasAgent:
 
         epsilon = self.config.epsilon
 
-        for _ in range(num_episodes):
+        for episode_idx in range(num_episodes):
             state, _info = env.reset()
             action = self._epsilon_greedy(state, epsilon)
             episode_rewards: List[float] = []
@@ -190,9 +236,21 @@ class SarsaTD0ConfirmationBiasAgent:
                 "disconfirmatory_nongreedy_positive_ratio_per_episode"
             ].append(float(disconfirmatory_nongreedy_positive_ratio))
 
-        episode_metrics: Dict[str, Dict[str, List[float]]] = {
+            if (
+                eval_env_factory is not None
+                and self.config.eval_every_episodes > 0
+                and (episode_idx + 1) % self.config.eval_every_episodes == 0
+            ):
+                checkpoint_metrics = self._run_mid_eval(
+                    eval_env_factory, eval_env_kwargs=eval_env_kwargs
+                )
+                checkpoint_metrics["episode"] = float(episode_idx + 1)
+                mid_eval_log.append(checkpoint_metrics)
+
+        episode_metrics: Dict[str, Any] = {
             "reward": reward_metrics_log,
             "td_error": td_error_metrics_log,
+            "mid_eval": mid_eval_log,
         }
         return episode_metrics
 

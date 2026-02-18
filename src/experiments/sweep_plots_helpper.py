@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from plots.training_plots import plot_moving_average_multi
+from plots.plots import plot_moving_average_multi
 
 
 def taxi_training_plot_specs() -> list[dict[str, Any]]:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime
 from pathlib import Path
@@ -50,7 +51,16 @@ def run_training(
     env = env_factory(**env_kwargs)
     agent = agent_factory(**agent_kwargs)
 
-    training_metrics = agent.train(env, num_episodes=config.num_train_episodes)
+    train_signature = inspect.signature(agent.train)
+    if "eval_env_factory" in train_signature.parameters:
+        training_metrics = agent.train(
+            env,
+            num_episodes=config.num_train_episodes,
+            eval_env_factory=env_factory,
+            eval_env_kwargs=env_kwargs,
+        )
+    else:
+        training_metrics = agent.train(env, num_episodes=config.num_train_episodes)
     return agent, training_metrics
 
 
