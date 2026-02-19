@@ -48,6 +48,48 @@ def plot_moving_average_multi(
     plt.show()
 
 
+def plot_bar_mean_multi(
+    series: dict[str, list[float]],
+    window: int = 100,
+    ylabel: str = "Value",
+    title: str = "Mean Value",
+    xlabel: str = "Setting",
+    start_episode: int = 0,
+    end_episode: int | None = None,
+) -> None:
+    """Plot one bar per setting using the mean of each series."""
+    del window  # kept for compatibility with generic plot function call sites
+    if not series:
+        raise ValueError("series must not be empty")
+    if start_episode < 0:
+        raise ValueError("start_episode must be >= 0")
+    if end_episode is not None and end_episode <= start_episode:
+        raise ValueError("end_episode must be greater than start_episode")
+
+    labels: list[str] = []
+    means: list[float] = []
+    for label, values in series.items():
+        sliced = values[start_episode:end_episode]
+        if not sliced:
+            continue
+        labels.append(label)
+        means.append(float(np.mean(np.asarray(sliced, dtype=float))))
+
+    if not labels:
+        raise ValueError("no values available after slicing for any series")
+
+    plt.figure(figsize=(10, 6))
+    x = np.arange(len(labels))
+    plt.bar(x, means)
+    plt.xticks(x, labels, rotation=25, ha="right")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.grid(axis="y", alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+
 def plot_mid_eval_metric(
     results,
     metric_key="total_reward_per_episode",

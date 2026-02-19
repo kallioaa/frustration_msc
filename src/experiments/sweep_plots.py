@@ -14,8 +14,13 @@ def plot_sweep_training(
     plot_specs: list[dict[str, Any]] | None = None,
     start_episode: int = 0,
     end_episode: int | None = None,
+    use_td_error_v: bool = False,
 ) -> None:
-    """Plot training curves from sweep results using metric plot specs."""
+    """Plot training curves from sweep results using metric plot specs.
+
+    When ``use_td_error_v`` is True, TD-error metrics are read from ``{key}_v``
+    when available and fall back to ``key`` if the ``_v`` variant is missing.
+    """
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
     metric_specs: list[tuple[str, str, str, str, str, Callable[..., Any]]] = []
@@ -63,7 +68,13 @@ def plot_sweep_training(
 
         for source, metric_key, _, _, _, _ in metric_specs:
             source_metrics = reward_metrics if source == "reward" else td_error_metrics
-            values = source_metrics.get(metric_key)
+            resolved_metric_key = metric_key
+            if source == "td_error" and use_td_error_v:
+                metric_key_v = f"{metric_key}_v"
+                resolved_metric_key = (
+                    metric_key_v if metric_key_v in source_metrics else metric_key
+                )
+            values = source_metrics.get(resolved_metric_key)
             if values is None:
                 continue
             metric_id = f"{source}:{metric_key}"
