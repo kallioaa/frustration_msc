@@ -7,7 +7,7 @@ from typing import Any
 from plots.plots import plot_moving_average_multi
 
 
-def taxi_training_plot_specs() -> list[dict[str, Any]]:
+def taxi_training_plot_specs(td_error_source: str = "td_error") -> list[dict[str, Any]]:
     """Return default training plot specs for Taxi-v3."""
     return [
         {
@@ -39,70 +39,70 @@ def taxi_training_plot_specs() -> list[dict[str, Any]]:
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "total_td_error_per_episode",
             "ylabel": "TD Error",
             "title": "Taxi-v3: Total TD Error",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "mean_absolute_td_error_per_episode",
             "ylabel": "Mean |TD Error|",
             "title": "Taxi-v3: Mean Absolute TD Error",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "negative_td_error_sum_per_episode",
             "ylabel": "Negative TD Error Sum",
             "title": "Taxi-v3: Negative TD Error Sum",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "frustration_rate_per_episode",
             "ylabel": "Frustration Rate",
             "title": "Taxi-v3: Frustration Rate",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "confirmatory_update_ratio_per_episode",
             "ylabel": "Confirmatory Update Ratio",
             "title": "Taxi-v3: Confirmatory Update Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "positive_lr_update_ratio_per_episode",
             "ylabel": "Positive-LR Update Ratio",
             "title": "Taxi-v3: Positive-LR Update Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "confirmatory_greedy_positive_ratio_per_episode",
             "ylabel": "Greedy+Positive Ratio",
             "title": "Taxi-v3: Confirmatory Greedy+Positive Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "confirmatory_nongreedy_negative_ratio_per_episode",
             "ylabel": "Non-Greedy+Negative Ratio",
             "title": "Taxi-v3: Confirmatory Non-Greedy+Negative Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "disconfirmatory_greedy_negative_ratio_per_episode",
             "ylabel": "Greedy+Negative Ratio",
             "title": "Taxi-v3: Disconfirmatory Greedy+Negative Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "disconfirmatory_nongreedy_positive_ratio_per_episode",
             "ylabel": "Non-Greedy+Positive Ratio",
             "title": "Taxi-v3: Disconfirmatory Non-Greedy+Positive Ratio",
@@ -111,7 +111,7 @@ def taxi_training_plot_specs() -> list[dict[str, Any]]:
     ]
 
 
-def cliffwalking_training_plot_specs() -> list[dict[str, Any]]:
+def cliffwalking_training_plot_specs(td_error_source: str = "td_error") -> list[dict[str, Any]]:
     """Return default training plot specs for CliffWalking."""
     return [
         {
@@ -143,70 +143,70 @@ def cliffwalking_training_plot_specs() -> list[dict[str, Any]]:
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "total_td_error_per_episode",
             "ylabel": "TD Error",
             "title": "CliffWalking: Total TD Error",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "mean_absolute_td_error_per_episode",
             "ylabel": "Mean |TD Error|",
             "title": "CliffWalking: Mean Absolute TD Error",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "negative_td_error_sum_per_episode",
             "ylabel": "Negative TD Error Sum",
             "title": "CliffWalking: Negative TD Error Sum",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "frustration_rate_per_episode",
             "ylabel": "Frustration Rate",
             "title": "CliffWalking: Frustration Rate",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "confirmatory_update_ratio_per_episode",
             "ylabel": "Confirmatory Update Ratio",
             "title": "CliffWalking: Confirmatory Update Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "positive_lr_update_ratio_per_episode",
             "ylabel": "Positive-LR Update Ratio",
             "title": "CliffWalking: Positive-LR Update Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "confirmatory_greedy_positive_ratio_per_episode",
             "ylabel": "Greedy+Positive Ratio",
             "title": "CliffWalking: Confirmatory Greedy+Positive Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "confirmatory_nongreedy_negative_ratio_per_episode",
             "ylabel": "Non-Greedy+Negative Ratio",
             "title": "CliffWalking: Confirmatory Non-Greedy+Negative Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "disconfirmatory_greedy_negative_ratio_per_episode",
             "ylabel": "Greedy+Negative Ratio",
             "title": "CliffWalking: Disconfirmatory Greedy+Negative Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "disconfirmatory_nongreedy_positive_ratio_per_episode",
             "ylabel": "Non-Greedy+Positive Ratio",
             "title": "CliffWalking: Disconfirmatory Non-Greedy+Positive Ratio",
@@ -215,7 +215,7 @@ def cliffwalking_training_plot_specs() -> list[dict[str, Any]]:
     ]
 
 
-def frozenlake_training_plot_specs() -> list[dict[str, Any]]:
+def frozenlake_training_plot_specs(td_error_source: str = "td_error") -> list[dict[str, Any]]:
     """Return default training plot specs for FrozenLake."""
     return [
         {
@@ -240,70 +240,70 @@ def frozenlake_training_plot_specs() -> list[dict[str, Any]]:
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "total_td_error_per_episode",
             "ylabel": "TD Error",
             "title": "FrozenLake: Total TD Error",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "mean_absolute_td_error_per_episode",
             "ylabel": "Mean |TD Error|",
             "title": "FrozenLake: Mean Absolute TD Error",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "negative_td_error_sum_per_episode",
             "ylabel": "Negative TD Error Sum",
             "title": "FrozenLake: Negative TD Error Sum",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "frustration_rate_per_episode",
             "ylabel": "Frustration Rate",
             "title": "FrozenLake: Frustration Rate",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "confirmatory_update_ratio_per_episode",
             "ylabel": "Confirmatory Update Ratio",
             "title": "FrozenLake: Confirmatory Update Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "positive_lr_update_ratio_per_episode",
             "ylabel": "Positive-LR Update Ratio",
             "title": "FrozenLake: Positive-LR Update Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "confirmatory_greedy_positive_ratio_per_episode",
             "ylabel": "Greedy+Positive Ratio",
             "title": "FrozenLake: Confirmatory Greedy+Positive Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "confirmatory_nongreedy_negative_ratio_per_episode",
             "ylabel": "Non-Greedy+Negative Ratio",
             "title": "FrozenLake: Confirmatory Non-Greedy+Negative Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "disconfirmatory_greedy_negative_ratio_per_episode",
             "ylabel": "Greedy+Negative Ratio",
             "title": "FrozenLake: Disconfirmatory Greedy+Negative Ratio",
             "plot_fn": plot_moving_average_multi,
         },
         {
-            "source": "td_error",
+            "source": td_error_source,
             "key": "disconfirmatory_nongreedy_positive_ratio_per_episode",
             "ylabel": "Non-Greedy+Positive Ratio",
             "title": "FrozenLake: Disconfirmatory Non-Greedy+Positive Ratio",
