@@ -13,25 +13,14 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
-        "use_td_error_v": False,
+        "use_td_error_v": True,
         "label_fn": cliffwalking_thesis_label_fn,
         "plot_specs": [
             {
                 "source": "reward",
-                "key": "total_reward_per_episode",
-                "ylabel": "Return",
-                "title": "CliffWalking Thesis: Training Return",
-                "plot_fn": plot_moving_average_multi,
-                "plot_kwargs": {
-                    "figsize": (10, 6),
-                    "legend_loc": "best",
-                },
-            },
-            {
-                "source": "reward",
                 "key": "episode_length_per_episode",
                 "ylabel": "Episode Length",
-                "title": "CliffWalking Thesis: Training Episode Length",
+                "title": "CliffWalking: Episode Length",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
                     "figsize": (10, 6),
@@ -40,9 +29,42 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
             },
             {
                 "source": "reward",
-                "key": "cliff_fall_rate_per_episode",
-                "ylabel": "Cliff Fall Rate",
-                "title": "CliffWalking Thesis: Training Cliff-Fall Rate",
+                "key": "cliff_falls_per_episode",
+                "ylabel": "Cliff Falls",
+                "title": "CliffWalking: Falls Per Episode",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "total_td_error_per_episode",
+                "ylabel": "TD Error",
+                "title": "CliffWalking: Total TD Error",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "mean_absolute_td_error_per_episode",
+                "ylabel": "Mean |TD Error|",
+                "title": "CliffWalking: Mean Absolute TD Error",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "negative_td_error_sum_per_episode",
+                "ylabel": "Negative TD Error Sum",
+                "title": "CliffWalking: Negative TD Error Sum",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
                     "figsize": (10, 6),
@@ -53,7 +75,29 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
                 "source": "td_error",
                 "key": "frustration_rate_per_episode",
                 "ylabel": "Frustration Rate",
-                "title": "CliffWalking Thesis: Training Frustration Rate",
+                "title": "CliffWalking: Frustration Rate",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "confirmatory_update_ratio_per_episode",
+                "ylabel": "Confirmatory Update Ratio",
+                "title": "CliffWalking: Confirmatory Update Ratio",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "positive_lr_update_ratio_per_episode",
+                "ylabel": "Positive-LR Update Ratio",
+                "title": "CliffWalking: Positive-LR Update Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
                     "figsize": (10, 6),
