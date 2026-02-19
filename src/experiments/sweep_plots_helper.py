@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from experiments.sweep_plots_helper_thesis import (
+    cliffwalking_evaluation_thesis_config,
+    cliffwalking_thesis_label_fn,
+)
 from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
 
 

@@ -14,6 +14,13 @@ def plot_moving_average_multi(
     xlabel: str = "Episode",
     start_episode: int = 0,
     end_episode: int | None = None,
+    figsize: tuple[float, float] = (10, 6),
+    legend_loc: str = "best",
+    legend_bbox_to_anchor: tuple[float, float] | None = None,
+    show_legend: bool = True,
+    line_alpha: float = 1.0,
+    grid_alpha: float = 1.0,
+    tight_layout: bool = False,
 ) -> None:
     """Plot moving average for multiple parameter settings."""
     if window <= 0:
@@ -25,7 +32,7 @@ def plot_moving_average_multi(
     if end_episode is not None and end_episode <= start_episode:
         raise ValueError("end_episode must be greater than start_episode")
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=figsize)
     for label, values in series.items():
         episode_offset = start_episode
         if start_episode or end_episode is not None:
@@ -38,13 +45,16 @@ def plot_moving_average_multi(
             episode_offset + window - 1,
             episode_offset + len(values),
         )
-        plt.plot(x_values, moving_avg, label=label)
+        plt.plot(x_values, moving_avg, label=label, alpha=line_alpha)
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.legend()
-    plt.grid(True)
+    if show_legend:
+        plt.legend(loc=legend_loc, bbox_to_anchor=legend_bbox_to_anchor)
+    plt.grid(True, alpha=grid_alpha)
+    if tight_layout:
+        plt.tight_layout()
     plt.show()
 
 
@@ -56,6 +66,12 @@ def plot_bar_mean_multi(
     xlabel: str = "Setting",
     start_episode: int = 0,
     end_episode: int | None = None,
+    figsize: tuple[float, float] = (10, 6),
+    xtick_rotation: float = 25,
+    xtick_ha: str = "right",
+    bar_alpha: float = 1.0,
+    grid_alpha: float = 0.3,
+    tight_layout: bool = True,
 ) -> None:
     """Plot one bar per setting using the mean of each series."""
     del window  # kept for compatibility with generic plot function call sites
@@ -78,15 +94,16 @@ def plot_bar_mean_multi(
     if not labels:
         raise ValueError("no values available after slicing for any series")
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=figsize)
     x = np.arange(len(labels))
-    plt.bar(x, means)
-    plt.xticks(x, labels, rotation=25, ha="right")
+    plt.bar(x, means, alpha=bar_alpha)
+    plt.xticks(x, labels, rotation=xtick_rotation, ha=xtick_ha)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.grid(axis="y", alpha=0.3)
-    plt.tight_layout()
+    plt.grid(axis="y", alpha=grid_alpha)
+    if tight_layout:
+        plt.tight_layout()
     plt.show()
 
 

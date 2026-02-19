@@ -20,10 +20,14 @@ def plot_sweep_training(
 
     When ``use_td_error_v`` is True, TD-error metrics are read from ``{key}_v``
     when available and fall back to ``key`` if the ``_v`` variant is missing.
+    Optional ``plot_kwargs`` in each plot spec are forwarded to that metric's
+    ``plot_fn``.
     """
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
-    metric_specs: list[tuple[str, str, str, str, str, Callable[..., Any]]] = []
+    metric_specs: list[
+        tuple[str, str, str, str, str, Callable[..., Any], dict[str, Any]]
+    ] = []
     for spec in plot_specs:
         source = spec.get("source")
         key = spec.get("key")
@@ -31,6 +35,7 @@ def plot_sweep_training(
         title = spec.get("title")
         xlabel = spec.get("xlabel", "Episode")
         plot_fn = spec.get("plot_fn")
+        plot_kwargs = spec.get("plot_kwargs", {})
         if source not in {"reward", "td_error"}:
             raise ValueError(f"Unsupported metric source: {source}")
         if not isinstance(key, str) or not key:
@@ -45,7 +50,9 @@ def plot_sweep_training(
             raise ValueError(f"xlabel must be a non-empty string for {key}")
         if not callable(plot_fn):
             raise ValueError(f"Each plot spec must include callable plot_fn for {key}")
-        metric_specs.append((source, key, ylabel, title, xlabel, plot_fn))
+        if not isinstance(plot_kwargs, dict):
+            raise ValueError(f"plot_kwargs must be a dict for {key}")
+        metric_specs.append((source, key, ylabel, title, xlabel, plot_fn, plot_kwargs))
 
     grouped: Dict[tuple, Dict[str, Any]] = {}
 
@@ -66,7 +73,7 @@ def plot_sweep_training(
             },
         )
 
-        for source, metric_key, _, _, _, _ in metric_specs:
+        for source, metric_key, _, _, _, _, _ in metric_specs:
             source_metrics = reward_metrics if source == "reward" else td_error_metrics
             resolved_metric_key = metric_key
             if source == "td_error" and use_td_error_v:
@@ -81,7 +88,7 @@ def plot_sweep_training(
             metric_runs = entry["metric_runs"].setdefault(metric_id, [])
             metric_runs.append(values)
 
-    for source, metric_key, ylabel, title, xlabel, plot_fn in metric_specs:
+    for source, metric_key, ylabel, title, xlabel, plot_fn, plot_kwargs in metric_specs:
         metric_id = f"{source}:{metric_key}"
         series_by_label: Dict[str, list[float]] = {}
         for entry in grouped.values():
@@ -100,6 +107,7 @@ def plot_sweep_training(
                 xlabel=xlabel,
                 start_episode=start_episode,
                 end_episode=end_episode,
+                **plot_kwargs,
             )
 
 
@@ -111,16 +119,23 @@ def plot_sweep_evaluation(
     start_episode: int = 0,
     end_episode: int | None = None,
 ) -> None:
-    """Plot evaluation curves from sweep results using metric plot specs."""
+    """Plot evaluation curves from sweep results using metric plot specs.
+
+    Optional ``plot_kwargs`` in each plot spec are forwarded to that metric's
+    ``plot_fn``.
+    """
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
-    metric_specs: list[tuple[str, str, str, str, Callable[..., Any]]] = []
+    metric_specs: list[
+        tuple[str, str, str, str, Callable[..., Any], dict[str, Any]]
+    ] = []
     for spec in plot_specs:
         key = spec.get("key")
         ylabel = spec.get("ylabel")
         title = spec.get("title")
         xlabel = spec.get("xlabel", "Episode")
         plot_fn = spec.get("plot_fn")
+        plot_kwargs = spec.get("plot_kwargs", {})
         if not isinstance(key, str) or not key:
             raise ValueError("Each plot spec must include a non-empty string key")
         if not isinstance(ylabel, str) or not ylabel:
@@ -133,7 +148,9 @@ def plot_sweep_evaluation(
             raise ValueError(f"xlabel must be a non-empty string for {key}")
         if not callable(plot_fn):
             raise ValueError(f"Each plot spec must include callable plot_fn for {key}")
-        metric_specs.append((key, ylabel, title, xlabel, plot_fn))
+        if not isinstance(plot_kwargs, dict):
+            raise ValueError(f"plot_kwargs must be a dict for {key}")
+        metric_specs.append((key, ylabel, title, xlabel, plot_fn, plot_kwargs))
 
     grouped: Dict[tuple, Dict[str, Any]] = {}
 
@@ -151,14 +168,14 @@ def plot_sweep_evaluation(
             },
         )
 
-        for metric_key, _, _, _, _ in metric_specs:
+        for metric_key, _, _, _, _, _ in metric_specs:
             values = evaluation.get(metric_key)
             if values is None:
                 continue
             metric_runs = entry["metric_runs"].setdefault(metric_key, [])
             metric_runs.append(values)
 
-    for metric_key, ylabel, title, xlabel, plot_fn in metric_specs:
+    for metric_key, ylabel, title, xlabel, plot_fn, plot_kwargs in metric_specs:
         series_by_label: Dict[str, list[float]] = {}
         for entry in grouped.values():
             runs = entry["metric_runs"].get(metric_key, [])
@@ -176,6 +193,7 @@ def plot_sweep_evaluation(
                 xlabel=xlabel,
                 start_episode=start_episode,
                 end_episode=end_episode,
+                **plot_kwargs,
             )
 
 
