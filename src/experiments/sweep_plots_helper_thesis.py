@@ -171,6 +171,50 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                     "xtick_ha": "right",
                 },
             },
+            {
+                "key": "total_td_error_per_episode",
+                "ylabel": "TD Error",
+                "title": "CliffWalking Thesis: Evaluation Total TD Error",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "mean_absolute_td_error_per_episode",
+                "ylabel": "Mean |TD Error|",
+                "title": "CliffWalking Thesis: Evaluation Mean Absolute TD Error",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "negative_td_error_sum_per_episode",
+                "ylabel": "Negative TD Error Sum",
+                "title": "CliffWalking Thesis: Evaluation Negative TD Error Sum",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "frustration_rate_per_episode",
+                "ylabel": "Frustration Rate",
+                "title": "CliffWalking Thesis: Evaluation Frustration Rate",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
         ],
     }
 
@@ -310,6 +354,50 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
                 "key": "total_reward_per_episode",
                 "ylabel": "Return",
                 "title": "FrozenLake Thesis: Evaluation Episode Return",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "total_td_error_per_episode",
+                "ylabel": "TD Error",
+                "title": "FrozenLake Thesis: Evaluation Total TD Error",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "mean_absolute_td_error_per_episode",
+                "ylabel": "Mean |TD Error|",
+                "title": "FrozenLake Thesis: Evaluation Mean Absolute TD Error",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "negative_td_error_sum_per_episode",
+                "ylabel": "Negative TD Error Sum",
+                "title": "FrozenLake Thesis: Evaluation Negative TD Error Sum",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "frustration_rate_per_episode",
+                "ylabel": "Frustration Rate",
+                "title": "FrozenLake Thesis: Evaluation Frustration Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": (10, 6),
@@ -489,6 +577,50 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "key": "taxi_illegal_actions_per_episode",
                 "ylabel": "Illegal Actions",
                 "title": "Taxi-v3 Thesis: Evaluation Illegal Actions",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "total_td_error_per_episode",
+                "ylabel": "TD Error",
+                "title": "Taxi-v3 Thesis: Evaluation Total TD Error",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "mean_absolute_td_error_per_episode",
+                "ylabel": "Mean |TD Error|",
+                "title": "Taxi-v3 Thesis: Evaluation Mean Absolute TD Error",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "negative_td_error_sum_per_episode",
+                "ylabel": "Negative TD Error Sum",
+                "title": "Taxi-v3 Thesis: Evaluation Negative TD Error Sum",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "frustration_rate_per_episode",
+                "ylabel": "Frustration Rate",
+                "title": "Taxi-v3 Thesis: Evaluation Frustration Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": (10, 6),
