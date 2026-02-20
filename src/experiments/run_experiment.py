@@ -34,6 +34,7 @@ class EvaluateConfig:
     seed: int | None = 0
     env_kwargs: Dict[str, Any] = None
     evaluation_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
+    td_error_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
 
 
 def _timestamp() -> str:
@@ -80,6 +81,7 @@ def run_evaluation(
         num_episodes=config.num_eval_episodes,
         seed=config.seed,
         evaluation_metrics=config.evaluation_metrics,
+        td_error_metrics=config.td_error_metrics,
     )
 
     config_dict = asdict(config)

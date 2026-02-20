@@ -104,6 +104,50 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
                     "legend_loc": "best",
                 },
             },
+            {
+                "source": "td_error",
+                "key": "confirmatory_greedy_positive_ratio_per_episode",
+                "ylabel": "Greedy+Positive Ratio",
+                "title": "CliffWalking: Confirmatory Greedy+Positive Ratio",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "confirmatory_nongreedy_negative_ratio_per_episode",
+                "ylabel": "Non-Greedy+Negative Ratio",
+                "title": "CliffWalking: Confirmatory Non-Greedy+Negative Ratio",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "disconfirmatory_greedy_negative_ratio_per_episode",
+                "ylabel": "Greedy+Negative Ratio",
+                "title": "CliffWalking: Disconfirmatory Greedy+Negative Ratio",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "disconfirmatory_nongreedy_positive_ratio_per_episode",
+                "ylabel": "Non-Greedy+Positive Ratio",
+                "title": "CliffWalking: Disconfirmatory Non-Greedy+Positive Ratio",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
         ],
     }
 
