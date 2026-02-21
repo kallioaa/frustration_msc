@@ -230,6 +230,17 @@ def frozenlake_training_thesis_config() -> dict[str, Any]:
         "plot_specs": [
             {
                 "source": "reward",
+                "key": "total_reward_per_episode",
+                "ylabel": "Return",
+                "title": "FrozenLake: Episode Return",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "reward",
                 "key": "episode_won",
                 "ylabel": "Success Rate",
                 "title": "FrozenLake: Episode Success",
