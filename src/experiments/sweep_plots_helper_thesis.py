@@ -161,6 +161,17 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
         "label_fn": cliffwalking_thesis_label_fn,
         "plot_specs": [
             {
+                "key": "total_reward_per_episode",
+                "ylabel": "Return",
+                "title": "CliffWalking Thesis: Evaluation Episode Return",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
                 "key": "episode_length_per_episode",
                 "ylabel": "Episode Length",
                 "title": "CliffWalking Thesis: Evaluation Episode Length",
@@ -197,6 +208,17 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                 "key": "negative_td_error_sum_per_episode",
                 "ylabel": "Negative TD Error Sum",
                 "title": "CliffWalking Thesis: Evaluation Negative TD Error Sum",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": (10, 6),
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "cliff_falls_per_episode",
+                "ylabel": "Cliff Falls",
+                "title": "CliffWalking Thesis: Evaluation Falls Per Episode",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": (10, 6),
