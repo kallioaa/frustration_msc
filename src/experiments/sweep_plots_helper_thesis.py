@@ -25,7 +25,6 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
-                    "ylim": (-100, 0),
                 },
             },
             {
@@ -37,7 +36,6 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
-                    "ylim": (0.8, 1),
                 },
             },
             {
@@ -49,7 +47,6 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
-                    "ylim": (0, 100),
                 },
             },
             {
@@ -61,7 +58,6 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
-                    "ylim": (0, 10),
                 },
             },
             {
@@ -73,7 +69,6 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
-                    "ylim": (-100, 0),
                 },
             },
             {
@@ -85,7 +80,6 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
-                    "ylim": (0, 0.8),
                 },
             },
             {
@@ -466,6 +460,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
+                    "ylim": (-100, 0),
                 },
             },
             {
@@ -477,6 +472,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
+                    "ylim": (0.8, 1),
                 },
             },
             {
@@ -488,6 +484,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
+                    "ylim": (0, 100),
                 },
             },
             {
@@ -499,6 +496,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
+                    "ylim": (0, 10),
                 },
             },
             {
@@ -510,6 +508,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
+                    "ylim": (-100, 0),
                 },
             },
             {
@@ -543,6 +542,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
+                    "ylim": (0, 0.8),
                 },
             },
             {
