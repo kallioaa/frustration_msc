@@ -8,17 +8,22 @@ from typing import Any
 from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
 
 
-def _with_episode_slice(
+def _with_config_overrides(
     config: dict[str, Any],
-    *,
-    start_episode: int,
-    end_episode: int | None,
-    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
+    overrides: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Return a deep-copied plot config with updated episode slicing and y-lims."""
+    """Return a deep-copied plot config with top-level and per-metric overrides."""
     updated = deepcopy(config)
-    updated["start_episode"] = start_episode
-    updated["end_episode"] = end_episode
+
+    if not overrides:
+        return updated
+
+    override_dict = dict(overrides)
+    ylims_by_key = override_dict.pop("ylims_by_key", None)
+    plot_kwargs_by_key = override_dict.pop("plot_kwargs_by_key", None)
+
+    for key, value in override_dict.items():
+        updated[key] = value
 
     if ylims_by_key:
         for spec in updated.get("plot_specs", []):
@@ -32,12 +37,25 @@ def _with_episode_slice(
             else:
                 plot_kwargs["ylim"] = ylim
             spec["plot_kwargs"] = plot_kwargs
+
+    if plot_kwargs_by_key:
+        for spec in updated.get("plot_specs", []):
+            metric_key = spec.get("key")
+            metric_overrides = plot_kwargs_by_key.get(metric_key)
+            if not metric_overrides:
+                continue
+            plot_kwargs = dict(spec.get("plot_kwargs") or {})
+            plot_kwargs.update(metric_overrides)
+            spec["plot_kwargs"] = plot_kwargs
+
     return updated
 
 
-def cliffwalking_training_thesis_config() -> dict[str, Any]:
+def cliffwalking_training_thesis_config(
+    overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Return thesis-oriented config for CliffWalking training plots."""
-    return {
+    config = {
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
@@ -178,30 +196,7 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
             },
         ],
     }
-
-
-def cliffwalking_training_thesis_beginning_config(
-    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
-) -> dict[str, Any]:
-    """CliffWalking training plots for the beginning phase (episodes < 500)."""
-    return _with_episode_slice(
-        cliffwalking_training_thesis_config(),
-        start_episode=0,
-        end_episode=500,
-        ylims_by_key=ylims_by_key,
-    )
-
-
-def cliffwalking_training_thesis_ending_config(
-    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
-) -> dict[str, Any]:
-    """CliffWalking training plots for the ending phase (episodes >= 500)."""
-    return _with_episode_slice(
-        cliffwalking_training_thesis_config(),
-        start_episode=500,
-        end_episode=None,
-        ylims_by_key=ylims_by_key,
-    )
+    return _with_config_overrides(config, overrides)
 
 
 def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
@@ -293,9 +288,11 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
     }
 
 
-def frozenlake_training_thesis_config() -> dict[str, Any]:
+def frozenlake_training_thesis_config(
+    overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Return thesis-oriented config for FrozenLake training plots."""
-    return {
+    config = {
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
@@ -311,6 +308,7 @@ def frozenlake_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
+                    "ylim": (-100, 0),
                 },
             },
             {
@@ -403,6 +401,7 @@ def frozenlake_training_thesis_config() -> dict[str, Any]:
             },
         ],
     }
+    return _with_config_overrides(config, overrides)
 
 
 def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
@@ -494,9 +493,11 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
     }
 
 
-def taxi_training_thesis_config() -> dict[str, Any]:
+def taxi_training_thesis_config(
+    overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Return thesis-oriented config for Taxi-v3 training plots."""
-    return {
+    config = {
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
@@ -524,7 +525,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
-                    "ylim": (0.8, 1),
+                    "ylim": (0.95, 1.025),
                 },
             },
             {
@@ -560,7 +561,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
-                    "ylim": (-100, 0),
+                    "ylim": (-100, 50),
                 },
             },
             {
@@ -583,6 +584,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
                 "plot_kwargs": {
                     "figsize": (10, 6),
                     "legend_loc": "best",
+                    "ylim": (-100, 0),
                 },
             },
             {
@@ -621,30 +623,7 @@ def taxi_training_thesis_config() -> dict[str, Any]:
             },
         ],
     }
-
-
-def taxi_training_thesis_beginning_config(
-    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
-) -> dict[str, Any]:
-    """Taxi-v3 training plots for the beginning phase (episodes < 2500)."""
-    return _with_episode_slice(
-        taxi_training_thesis_config(),
-        start_episode=0,
-        end_episode=2500,
-        ylims_by_key=ylims_by_key,
-    )
-
-
-def taxi_training_thesis_ending_config(
-    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
-) -> dict[str, Any]:
-    """Taxi-v3 training plots for the ending phase (episodes >= 2500)."""
-    return _with_episode_slice(
-        taxi_training_thesis_config(),
-        start_episode=2500,
-        end_episode=None,
-        ylims_by_key=ylims_by_key,
-    )
+    return _with_config_overrides(config, overrides)
 
 
 def taxi_evaluation_thesis_config() -> dict[str, Any]:
