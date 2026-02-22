@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import inspect
+import re
+from pathlib import Path
 from typing import Any, Callable, Dict
 
 import numpy as np
@@ -15,6 +18,8 @@ def plot_sweep_training(
     start_episode: int = 0,
     end_episode: int | None = None,
     use_td_error_v: bool = False,
+    save_dir: str | Path | None = None,
+    save_format: str = "pdf",
 ) -> None:
     """Plot training curves from sweep results using metric plot specs.
 
@@ -25,6 +30,9 @@ def plot_sweep_training(
     """
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
+    save_dir_path = Path(save_dir) if save_dir is not None else None
+    if save_dir_path is not None:
+        save_dir_path.mkdir(parents=True, exist_ok=True)
     metric_specs: list[
         tuple[str, str, str, str, str, Callable[..., Any], dict[str, Any]]
     ] = []
@@ -88,6 +96,7 @@ def plot_sweep_training(
             metric_runs = entry["metric_runs"].setdefault(metric_id, [])
             metric_runs.append(values)
 
+    used_filenames: set[str] = set()
     for source, metric_key, ylabel, title, xlabel, plot_fn, plot_kwargs in metric_specs:
         metric_id = f"{source}:{metric_key}"
         series_by_label: Dict[str, list[float]] = {}
@@ -99,6 +108,18 @@ def plot_sweep_training(
             label = label_fn(params) if label_fn else _format_sweep_label(params)
             series_by_label[label] = _mean_series(runs)
         if series_by_label:
+            call_plot_kwargs = dict(plot_kwargs)
+            if (
+                save_dir_path is not None
+                and _plot_fn_supports_arg(plot_fn, "save_path")
+            ):
+                call_plot_kwargs["save_path"] = _build_plot_save_path(
+                    save_dir_path=save_dir_path,
+                    title=title,
+                    metric_key=metric_key,
+                    extension=save_format,
+                    used_names=used_filenames,
+                )
             plot_fn(
                 series_by_label,
                 window=window_size,
@@ -107,7 +128,7 @@ def plot_sweep_training(
                 xlabel=xlabel,
                 start_episode=start_episode,
                 end_episode=end_episode,
-                **plot_kwargs,
+                **call_plot_kwargs,
             )
 
 
@@ -118,6 +139,8 @@ def plot_sweep_evaluation(
     plot_specs: list[dict[str, Any]] | None = None,
     start_episode: int = 0,
     end_episode: int | None = None,
+    save_dir: str | Path | None = None,
+    save_format: str = "pdf",
 ) -> None:
     """Plot evaluation curves from sweep results using metric plot specs.
 
@@ -126,6 +149,9 @@ def plot_sweep_evaluation(
     """
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
+    save_dir_path = Path(save_dir) if save_dir is not None else None
+    if save_dir_path is not None:
+        save_dir_path.mkdir(parents=True, exist_ok=True)
     metric_specs: list[
         tuple[str, str, str, str, Callable[..., Any], dict[str, Any]]
     ] = []
@@ -175,6 +201,7 @@ def plot_sweep_evaluation(
             metric_runs = entry["metric_runs"].setdefault(metric_key, [])
             metric_runs.append(values)
 
+    used_filenames: set[str] = set()
     for metric_key, ylabel, title, xlabel, plot_fn, plot_kwargs in metric_specs:
         series_by_label: Dict[str, list[float]] = {}
         for entry in grouped.values():
@@ -185,6 +212,18 @@ def plot_sweep_evaluation(
             label = label_fn(params) if label_fn else _format_sweep_label(params)
             series_by_label[label] = _mean_series(runs)
         if series_by_label:
+            call_plot_kwargs = dict(plot_kwargs)
+            if (
+                save_dir_path is not None
+                and _plot_fn_supports_arg(plot_fn, "save_path")
+            ):
+                call_plot_kwargs["save_path"] = _build_plot_save_path(
+                    save_dir_path=save_dir_path,
+                    title=title,
+                    metric_key=metric_key,
+                    extension=save_format,
+                    used_names=used_filenames,
+                )
             plot_fn(
                 series_by_label,
                 window=window_size,
@@ -193,7 +232,7 @@ def plot_sweep_evaluation(
                 xlabel=xlabel,
                 start_episode=start_episode,
                 end_episode=end_episode,
-                **plot_kwargs,
+                **call_plot_kwargs,
             )
 
 
@@ -260,3 +299,40 @@ def _mean_series(series_list: list[list[float]]) -> list[float]:
         return []
     stacked = np.array([series[:min_len] for series in series_list], dtype=float)
     return list(np.mean(stacked, axis=0))
+
+
+def _plot_fn_supports_arg(plot_fn: Callable[..., Any], arg_name: str) -> bool:
+    """Return True if a callable accepts ``arg_name`` or arbitrary kwargs."""
+    try:
+        signature = inspect.signature(plot_fn)
+    except (TypeError, ValueError):
+        return False
+    for param in signature.parameters.values():
+        if param.kind == inspect.Parameter.VAR_KEYWORD:
+            return True
+    return arg_name in signature.parameters
+
+
+def _build_plot_save_path(
+    save_dir_path: Path,
+    title: str,
+    metric_key: str,
+    extension: str,
+    used_names: set[str],
+) -> Path:
+    """Create a unique save path using the plot title as the filename stem."""
+    ext = extension.lstrip(".") or "pdf"
+    stem = _slugify_filename(title) or _slugify_filename(metric_key) or "plot"
+    candidate = stem
+    suffix = 2
+    while candidate in used_names:
+        candidate = f"{stem}_{suffix}"
+        suffix += 1
+    used_names.add(candidate)
+    return save_dir_path / f"{candidate}.{ext}"
+
+
+def _slugify_filename(value: str) -> str:
+    """Convert a human-readable title into a filesystem-friendly filename."""
+    text = re.sub(r"[^A-Za-z0-9]+", "_", value.strip().lower())
+    return text.strip("_")

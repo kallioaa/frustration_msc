@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -22,6 +24,7 @@ def plot_moving_average_multi(
     grid_alpha: float = 1.0,
     tight_layout: bool = False,
     ylim: tuple[float, float] | None = None,
+    save_path: str | Path | None = None,
 ) -> None:
     """Plot moving average for multiple parameter settings."""
     if window <= 0:
@@ -58,6 +61,8 @@ def plot_moving_average_multi(
         plt.ylim(*ylim)
     if tight_layout:
         plt.tight_layout()
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches="tight")
     plt.show()
 
 
@@ -76,6 +81,7 @@ def plot_bar_mean_multi(
     grid_alpha: float = 0.3,
     tight_layout: bool = True,
     ylim: tuple[float, float] | None = None,
+    save_path: str | Path | None = None,
 ) -> None:
     """Plot one bar per setting using the mean of each series."""
     del window  # kept for compatibility with generic plot function call sites
@@ -110,6 +116,8 @@ def plot_bar_mean_multi(
         plt.ylim(*ylim)
     if tight_layout:
         plt.tight_layout()
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches="tight")
     plt.show()
 
 

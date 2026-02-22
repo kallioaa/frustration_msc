@@ -7,6 +7,8 @@ from typing import Any
 
 from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
 
+THESIS_FIGSIZE = (6.4, 3.6)
+
 
 def _with_config_overrides(
     config: dict[str, Any],
@@ -69,7 +71,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Episode Length",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -80,7 +82,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Falls Per Episode",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -91,7 +93,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Total TD Error",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -102,7 +104,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Mean Absolute TD Error",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -113,7 +115,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Negative TD Error Sum",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -124,7 +126,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Frustration Rate",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -135,7 +137,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Confirmatory Update Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -146,7 +148,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Positive-LR Update Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -157,7 +159,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Confirmatory Greedy+Positive Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -168,7 +170,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Confirmatory Non-Greedy+Negative Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -179,7 +181,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Disconfirmatory Greedy+Negative Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -190,7 +192,7 @@ def cliffwalking_training_thesis_config(
                 "title": "CliffWalking: Disconfirmatory Non-Greedy+Positive Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -213,7 +215,7 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "CliffWalking Thesis: Evaluation Episode Return",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -224,7 +226,7 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "CliffWalking Thesis: Evaluation Episode Length",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -235,7 +237,7 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "CliffWalking Thesis: Evaluation Total TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -246,7 +248,7 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "CliffWalking Thesis: Evaluation Mean Absolute TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -257,7 +259,7 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "CliffWalking Thesis: Evaluation Negative TD Error Sum",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -268,7 +270,7 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "CliffWalking Thesis: Evaluation Falls Per Episode",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -279,7 +281,7 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "CliffWalking Thesis: Evaluation Frustration Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -306,7 +308,7 @@ def frozenlake_training_thesis_config(
                 "title": "FrozenLake: Episode Return",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                     "ylim": (-100, 0),
                 },
@@ -318,7 +320,7 @@ def frozenlake_training_thesis_config(
                 "title": "FrozenLake: Episode Success",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -329,7 +331,7 @@ def frozenlake_training_thesis_config(
                 "title": "FrozenLake: Episode Length",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -340,7 +342,7 @@ def frozenlake_training_thesis_config(
                 "title": "FrozenLake: Total TD Error",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -351,7 +353,7 @@ def frozenlake_training_thesis_config(
                 "title": "FrozenLake: Mean Absolute TD Error",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -362,7 +364,7 @@ def frozenlake_training_thesis_config(
                 "title": "FrozenLake: Negative TD Error Sum",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -373,7 +375,7 @@ def frozenlake_training_thesis_config(
                 "title": "FrozenLake: Frustration Rate",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -384,7 +386,7 @@ def frozenlake_training_thesis_config(
                 "title": "FrozenLake: Confirmatory Update Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -395,7 +397,7 @@ def frozenlake_training_thesis_config(
                 "title": "FrozenLake: Positive-LR Update Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -418,7 +420,7 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "FrozenLake Thesis: Evaluation Success Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -429,7 +431,7 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "FrozenLake Thesis: Evaluation Episode Length",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -440,7 +442,7 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "FrozenLake Thesis: Evaluation Episode Return",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -451,7 +453,7 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "FrozenLake Thesis: Evaluation Total TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -462,7 +464,7 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "FrozenLake Thesis: Evaluation Mean Absolute TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -473,7 +475,7 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "FrozenLake Thesis: Evaluation Negative TD Error Sum",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -484,7 +486,7 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "FrozenLake Thesis: Evaluation Frustration Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -511,7 +513,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Episode Return",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                     "ylim": (-100, 0),
                 },
@@ -523,7 +525,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Episode Success",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                     "ylim": (0.95, 1.025),
                 },
@@ -535,7 +537,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Episode Length",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                     "ylim": (0, 100),
                 },
@@ -547,7 +549,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Illegal Pickup/Drop-off Actions",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                     "ylim": (0, 10),
                 },
@@ -559,7 +561,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Total TD Error",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                     "ylim": (-100, 50),
                 },
@@ -571,7 +573,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Mean Absolute TD Error",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -582,7 +584,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Negative TD Error Sum",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                     "ylim": (-100, 0),
                 },
@@ -594,7 +596,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Frustration Rate",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                     "ylim": (0, 0.8),
                 },
@@ -606,7 +608,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Confirmatory Update Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -617,7 +619,7 @@ def taxi_training_thesis_config(
                 "title": "Taxi-v3: Positive-LR Update Ratio",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
                 },
             },
@@ -640,7 +642,7 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "Taxi-v3 Thesis: Evaluation Episode Return",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -651,7 +653,7 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "Taxi-v3 Thesis: Evaluation Success Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -662,7 +664,7 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "Taxi-v3 Thesis: Evaluation Episode Length",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -673,7 +675,7 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "Taxi-v3 Thesis: Evaluation Illegal Actions",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -684,7 +686,7 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "Taxi-v3 Thesis: Evaluation Total TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -695,7 +697,7 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "Taxi-v3 Thesis: Evaluation Mean Absolute TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -706,7 +708,7 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "Taxi-v3 Thesis: Evaluation Negative TD Error Sum",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
@@ -717,7 +719,7 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "title": "Taxi-v3 Thesis: Evaluation Frustration Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
-                    "figsize": (10, 6),
+                    "figsize": THESIS_FIGSIZE,
                     "xtick_rotation": 45,
                     "xtick_ha": "right",
                 },
