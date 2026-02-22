@@ -21,6 +21,7 @@ def plot_moving_average_multi(
     line_alpha: float = 1.0,
     grid_alpha: float = 1.0,
     tight_layout: bool = False,
+    ylim: tuple[float, float] | None = None,
 ) -> None:
     """Plot moving average for multiple parameter settings."""
     if window <= 0:
@@ -53,6 +54,8 @@ def plot_moving_average_multi(
     if show_legend:
         plt.legend(loc=legend_loc, bbox_to_anchor=legend_bbox_to_anchor)
     plt.grid(True, alpha=grid_alpha)
+    if ylim is not None:
+        plt.ylim(*ylim)
     if tight_layout:
         plt.tight_layout()
     plt.show()
@@ -72,6 +75,7 @@ def plot_bar_mean_multi(
     bar_alpha: float = 1.0,
     grid_alpha: float = 0.3,
     tight_layout: bool = True,
+    ylim: tuple[float, float] | None = None,
 ) -> None:
     """Plot one bar per setting using the mean of each series."""
     del window  # kept for compatibility with generic plot function call sites
@@ -102,6 +106,8 @@ def plot_bar_mean_multi(
     plt.ylabel(ylabel)
     plt.title(title)
     plt.grid(axis="y", alpha=grid_alpha)
+    if ylim is not None:
+        plt.ylim(*ylim)
     if tight_layout:
         plt.tight_layout()
     plt.show()
