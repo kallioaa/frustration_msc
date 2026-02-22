@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any
 
 from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
@@ -12,11 +13,25 @@ def _with_episode_slice(
     *,
     start_episode: int,
     end_episode: int | None,
+    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
 ) -> dict[str, Any]:
-    """Return a copy of a plot config with updated episode slicing."""
-    updated = dict(config)
+    """Return a deep-copied plot config with updated episode slicing and y-lims."""
+    updated = deepcopy(config)
     updated["start_episode"] = start_episode
     updated["end_episode"] = end_episode
+
+    if ylims_by_key:
+        for spec in updated.get("plot_specs", []):
+            key = spec.get("key")
+            if key not in ylims_by_key:
+                continue
+            plot_kwargs = dict(spec.get("plot_kwargs") or {})
+            ylim = ylims_by_key[key]
+            if ylim is None:
+                plot_kwargs.pop("ylim", None)
+            else:
+                plot_kwargs["ylim"] = ylim
+            spec["plot_kwargs"] = plot_kwargs
     return updated
 
 
@@ -165,21 +180,27 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
     }
 
 
-def cliffwalking_training_thesis_beginning_config() -> dict[str, Any]:
+def cliffwalking_training_thesis_beginning_config(
+    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
+) -> dict[str, Any]:
     """CliffWalking training plots for the beginning phase (episodes < 500)."""
     return _with_episode_slice(
         cliffwalking_training_thesis_config(),
         start_episode=0,
         end_episode=500,
+        ylims_by_key=ylims_by_key,
     )
 
 
-def cliffwalking_training_thesis_ending_config() -> dict[str, Any]:
+def cliffwalking_training_thesis_ending_config(
+    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
+) -> dict[str, Any]:
     """CliffWalking training plots for the ending phase (episodes >= 500)."""
     return _with_episode_slice(
         cliffwalking_training_thesis_config(),
         start_episode=500,
         end_episode=None,
+        ylims_by_key=ylims_by_key,
     )
 
 
@@ -602,21 +623,27 @@ def taxi_training_thesis_config() -> dict[str, Any]:
     }
 
 
-def taxi_training_thesis_beginning_config() -> dict[str, Any]:
+def taxi_training_thesis_beginning_config(
+    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
+) -> dict[str, Any]:
     """Taxi-v3 training plots for the beginning phase (episodes < 2500)."""
     return _with_episode_slice(
         taxi_training_thesis_config(),
         start_episode=0,
         end_episode=2500,
+        ylims_by_key=ylims_by_key,
     )
 
 
-def taxi_training_thesis_ending_config() -> dict[str, Any]:
+def taxi_training_thesis_ending_config(
+    ylims_by_key: dict[str, tuple[float, float] | None] | None = None,
+) -> dict[str, Any]:
     """Taxi-v3 training plots for the ending phase (episodes >= 2500)."""
     return _with_episode_slice(
         taxi_training_thesis_config(),
         start_episode=2500,
         end_episode=None,
+        ylims_by_key=ylims_by_key,
     )
 
 
