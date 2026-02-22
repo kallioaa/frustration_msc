@@ -11,13 +11,14 @@ class TaxiV3Config:
     """Configuration for Taxi-v3 environment."""
 
     seed: Optional[int] = None
+    is_rainy: bool = False
 
 
 def get_taxi_v3_env(config: TaxiV3Config | dict) -> gym.Env:
     """Create a Taxi-v3 environment from a config object or dict."""
     if isinstance(config, dict):
         config = TaxiV3Config(**config)
-    env = gym.make("Taxi-v3")
+    env = gym.make("Taxi-v3", is_rainy=config.is_rainy)
     if config.seed is not None:
         env.reset(seed=config.seed)
     return env

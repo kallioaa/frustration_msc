@@ -12,8 +12,6 @@ from evaluation.evaluator import evaluator
 from environments.fronzenlake import get_frozenlake_env
 from gymnasium.wrappers import TimeLimit
 
-MAX_EVAL_STEPS = 200
-
 
 @dataclass
 class TrainingConfig:
@@ -32,6 +30,7 @@ class EvaluateConfig:
     name: str = "sarsa_frozenlake"
     num_eval_episodes: int = 1000
     seed: int | None = 0
+    max_episode_steps: int | None = None
     env_kwargs: Dict[str, Any] = None
     evaluation_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
     td_error_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
@@ -73,7 +72,8 @@ def run_evaluation(
     """Evaluate a trained agent and return run-level results."""
     env_kwargs = config.env_kwargs or {}
     env = env_factory(**env_kwargs)
-    env = TimeLimit(env, max_episode_steps=MAX_EVAL_STEPS)
+    if config.max_episode_steps is not None:
+        env = TimeLimit(env, max_episode_steps=config.max_episode_steps)
 
     eval_metrics = evaluator(
         env,
