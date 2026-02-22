@@ -7,6 +7,19 @@ from typing import Any
 from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
 
 
+def _with_episode_slice(
+    config: dict[str, Any],
+    *,
+    start_episode: int,
+    end_episode: int | None,
+) -> dict[str, Any]:
+    """Return a copy of a plot config with updated episode slicing."""
+    updated = dict(config)
+    updated["start_episode"] = start_episode
+    updated["end_episode"] = end_episode
+    return updated
+
+
 def cliffwalking_training_thesis_config() -> dict[str, Any]:
     """Return thesis-oriented config for CliffWalking training plots."""
     return {
@@ -150,6 +163,24 @@ def cliffwalking_training_thesis_config() -> dict[str, Any]:
             },
         ],
     }
+
+
+def cliffwalking_training_thesis_beginning_config() -> dict[str, Any]:
+    """CliffWalking training plots for the beginning phase (episodes < 500)."""
+    return _with_episode_slice(
+        cliffwalking_training_thesis_config(),
+        start_episode=0,
+        end_episode=500,
+    )
+
+
+def cliffwalking_training_thesis_ending_config() -> dict[str, Any]:
+    """CliffWalking training plots for the ending phase (episodes >= 500)."""
+    return _with_episode_slice(
+        cliffwalking_training_thesis_config(),
+        start_episode=500,
+        end_episode=None,
+    )
 
 
 def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
@@ -569,6 +600,24 @@ def taxi_training_thesis_config() -> dict[str, Any]:
             },
         ],
     }
+
+
+def taxi_training_thesis_beginning_config() -> dict[str, Any]:
+    """Taxi-v3 training plots for the beginning phase (episodes < 2500)."""
+    return _with_episode_slice(
+        taxi_training_thesis_config(),
+        start_episode=0,
+        end_episode=2500,
+    )
+
+
+def taxi_training_thesis_ending_config() -> dict[str, Any]:
+    """Taxi-v3 training plots for the ending phase (episodes >= 2500)."""
+    return _with_episode_slice(
+        taxi_training_thesis_config(),
+        start_episode=2500,
+        end_episode=None,
+    )
 
 
 def taxi_evaluation_thesis_config() -> dict[str, Any]:
