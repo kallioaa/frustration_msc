@@ -321,7 +321,6 @@ def frozenlake_training_thesis_config(
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
-                    "ylim": (-100, 0),
                 },
             },
             {
@@ -526,7 +525,6 @@ def taxi_training_thesis_config(
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
-                    "ylim": (-100, 0),
                 },
             },
             {
@@ -538,7 +536,6 @@ def taxi_training_thesis_config(
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
-                    "ylim": (0.95, 1.025),
                 },
             },
             {
@@ -550,7 +547,6 @@ def taxi_training_thesis_config(
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
-                    "ylim": (0, 100),
                 },
             },
             {
@@ -562,7 +558,6 @@ def taxi_training_thesis_config(
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
-                    "ylim": (0, 10),
                 },
             },
             {
@@ -574,7 +569,6 @@ def taxi_training_thesis_config(
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
-                    "ylim": (-100, 50),
                 },
             },
             {
@@ -597,7 +591,6 @@ def taxi_training_thesis_config(
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
-                    "ylim": (-100, 0),
                 },
             },
             {
@@ -609,7 +602,6 @@ def taxi_training_thesis_config(
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
                     "legend_loc": "best",
-                    "ylim": (0, 0.8),
                 },
             },
             {
