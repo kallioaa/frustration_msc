@@ -100,6 +100,7 @@ def plot_sweep_training(
     for source, metric_key, ylabel, title, xlabel, plot_fn, plot_kwargs in metric_specs:
         metric_id = f"{source}:{metric_key}"
         series_by_label: Dict[str, list[float]] = {}
+        runs_by_label: Dict[str, list[list[float]]] = {}
         for entry in grouped.values():
             runs = entry["metric_runs"].get(metric_id, [])
             if not runs:
@@ -107,8 +108,11 @@ def plot_sweep_training(
             params = entry["params"]
             label = label_fn(params) if label_fn else _format_sweep_label(params)
             series_by_label[label] = _mean_series(runs)
+            runs_by_label[label] = runs
         if series_by_label:
             call_plot_kwargs = dict(plot_kwargs)
+            if _plot_fn_supports_arg(plot_fn, "runs_by_label"):
+                call_plot_kwargs["runs_by_label"] = runs_by_label
             if (
                 save_dir_path is not None
                 and _plot_fn_supports_arg(plot_fn, "save_path")
@@ -204,6 +208,7 @@ def plot_sweep_evaluation(
     used_filenames: set[str] = set()
     for metric_key, ylabel, title, xlabel, plot_fn, plot_kwargs in metric_specs:
         series_by_label: Dict[str, list[float]] = {}
+        runs_by_label: Dict[str, list[list[float]]] = {}
         for entry in grouped.values():
             runs = entry["metric_runs"].get(metric_key, [])
             if not runs:
@@ -211,8 +216,11 @@ def plot_sweep_evaluation(
             params = entry["params"]
             label = label_fn(params) if label_fn else _format_sweep_label(params)
             series_by_label[label] = _mean_series(runs)
+            runs_by_label[label] = runs
         if series_by_label:
             call_plot_kwargs = dict(plot_kwargs)
+            if _plot_fn_supports_arg(plot_fn, "runs_by_label"):
+                call_plot_kwargs["runs_by_label"] = runs_by_label
             if (
                 save_dir_path is not None
                 and _plot_fn_supports_arg(plot_fn, "save_path")

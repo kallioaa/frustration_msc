@@ -2,10 +2,55 @@
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
+from statistics import NormalDist
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+try:
+    from scipy.stats import t as _scipy_student_t
+except Exception:  # pragma: no cover - optional dependency
+    _scipy_student_t = None
+
+
+def _critical_value(level: float, n: int, method: str) -> float:
+    """Return a critical value for a two-sided confidence interval."""
+    alpha = 1.0 - level
+    if method == "normal":
+        return float(NormalDist().inv_cdf(1.0 - alpha / 2.0))
+    if method != "t":
+        raise ValueError(f"Unsupported ci_method: {method}")
+    if n < 2:
+        return 0.0
+    if _scipy_student_t is not None:
+        return float(_scipy_student_t.ppf(1.0 - alpha / 2.0, df=n - 1))
+    # Fallback when SciPy is unavailable.
+    return float(NormalDist().inv_cdf(1.0 - alpha / 2.0))
+
+
+def _mean_confidence_interval(
+    values: list[float],
+    level: float = 0.95,
+    method: str = "t",
+) -> tuple[float, float, float]:
+    """Return (mean, lower, upper) CI bounds for a list of run-level values."""
+    x = np.asarray(values, dtype=float)
+    x = x[np.isfinite(x)]
+    n = int(x.size)
+    if n == 0:
+        return (math.nan, math.nan, math.nan)
+
+    mean = float(np.mean(x))
+    if n == 1:
+        return (mean, mean, mean)
+
+    std = float(np.std(x, ddof=1))
+    sem = std / math.sqrt(n)
+    crit = _critical_value(level=level, n=n, method=method)
+    half_width = crit * sem
+    return (mean, mean - half_width, mean + half_width)
 
 
 def plot_moving_average_multi(
@@ -87,8 +132,16 @@ def plot_bar_mean_multi(
     ylim: tuple[float, float] | None = None,
     save_path: str | Path | None = None,
     save_bbox_inches: str | None = "tight",
+    runs_by_label: dict[str, list[list[float]]] | None = None,
+    ci_level: float | None = 0.95,
+    ci_method: str = "t",
+    ci_capsize: float = 4.0,
 ) -> None:
-    """Plot one bar per setting using the mean of each series."""
+    """Plot one bar per setting using the mean of each series.
+
+    When ``runs_by_label`` is provided, bars are computed from per-run means and
+    confidence intervals are drawn across runs (typically seeds).
+    """
     del window  # kept for compatibility with generic plot function call sites
     if not series:
         raise ValueError("series must not be empty")
@@ -96,22 +149,50 @@ def plot_bar_mean_multi(
         raise ValueError("start_episode must be >= 0")
     if end_episode is not None and end_episode <= start_episode:
         raise ValueError("end_episode must be greater than start_episode")
+    if ci_level is not None and not (0.0 < ci_level < 1.0):
+        raise ValueError("ci_level must be in (0, 1) or None")
 
     labels: list[str] = []
     means: list[float] = []
+    lower_errs: list[float] = []
+    upper_errs: list[float] = []
     for label, values in series.items():
         sliced = values[start_episode:end_episode]
         if not sliced:
             continue
+        mean_value = float(np.mean(np.asarray(sliced, dtype=float)))
+        lower = mean_value
+        upper = mean_value
+
+        if runs_by_label is not None and ci_level is not None:
+            run_means: list[float] = []
+            for run_values in runs_by_label.get(label, []):
+                run_sliced = run_values[start_episode:end_episode]
+                if not run_sliced:
+                    continue
+                run_means.append(float(np.mean(np.asarray(run_sliced, dtype=float))))
+            if run_means:
+                mean_value, lower, upper = _mean_confidence_interval(
+                    run_means,
+                    level=ci_level,
+                    method=ci_method,
+                )
+
         labels.append(label)
-        means.append(float(np.mean(np.asarray(sliced, dtype=float))))
+        means.append(mean_value)
+        lower_errs.append(max(0.0, mean_value - lower))
+        upper_errs.append(max(0.0, upper - mean_value))
 
     if not labels:
         raise ValueError("no values available after slicing for any series")
 
     plt.figure(figsize=figsize)
     x = np.arange(len(labels))
-    plt.bar(x, means, alpha=bar_alpha)
+    bar_kwargs = {"alpha": bar_alpha}
+    if ci_level is not None and any(err > 0.0 for err in lower_errs + upper_errs):
+        bar_kwargs["yerr"] = np.vstack([lower_errs, upper_errs])
+        bar_kwargs["capsize"] = ci_capsize
+    plt.bar(x, means, **bar_kwargs)
     plt.xticks(x, labels, rotation=xtick_rotation, ha=xtick_ha)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
