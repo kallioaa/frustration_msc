@@ -25,6 +25,7 @@ def plot_moving_average_multi(
     tight_layout: bool = False,
     ylim: tuple[float, float] | None = None,
     save_path: str | Path | None = None,
+    save_bbox_inches: str | None = "tight",
 ) -> None:
     """Plot moving average for multiple parameter settings."""
     if window <= 0:
@@ -62,7 +63,10 @@ def plot_moving_average_multi(
     if tight_layout:
         plt.tight_layout()
     if save_path is not None:
-        plt.savefig(save_path, bbox_inches="tight")
+        savefig_kwargs = {}
+        if save_bbox_inches is not None:
+            savefig_kwargs["bbox_inches"] = save_bbox_inches
+        plt.savefig(save_path, **savefig_kwargs)
     plt.show()
 
 
@@ -82,6 +86,7 @@ def plot_bar_mean_multi(
     tight_layout: bool = True,
     ylim: tuple[float, float] | None = None,
     save_path: str | Path | None = None,
+    save_bbox_inches: str | None = "tight",
 ) -> None:
     """Plot one bar per setting using the mean of each series."""
     del window  # kept for compatibility with generic plot function call sites
@@ -117,7 +122,10 @@ def plot_bar_mean_multi(
     if tight_layout:
         plt.tight_layout()
     if save_path is not None:
-        plt.savefig(save_path, bbox_inches="tight")
+        savefig_kwargs = {}
+        if save_bbox_inches is not None:
+            savefig_kwargs["bbox_inches"] = save_bbox_inches
+        plt.savefig(save_path, **savefig_kwargs)
     plt.show()
 
 

@@ -7,7 +7,7 @@ from typing import Any
 
 from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
 
-THESIS_FIGSIZE = (6.4, 3.6)
+THESIS_FIGSIZE = (5.9, 3.32)
 
 
 def _with_config_overrides(
@@ -64,6 +64,17 @@ def cliffwalking_training_thesis_config(
         "use_td_error_v": True,
         "label_fn": cliffwalking_thesis_label_fn,
         "plot_specs": [
+            {
+                "source": "reward",
+                "key": "total_reward_per_episode",
+                "ylabel": "Return",
+                "title": "CliffWalking: Episode Return",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "legend_loc": "best",
+                },
+            },
             {
                 "source": "reward",
                 "key": "episode_length_per_episode",
@@ -740,7 +751,7 @@ def cliffwalking_thesis_label_fn(params: dict[str, Any]) -> str:
     alpha_positive = agent_kwargs.get("alpha_positive")
     alpha_negative = agent_kwargs.get("alpha_negative")
     if alpha_positive is not None and alpha_negative is not None:
-        return f"ap={alpha_positive}, an={alpha_negative}"
+        return f"ap={float(alpha_positive):.3f}, an={float(alpha_negative):.3f}"
 
     return str(agent_kwargs)
 
@@ -751,11 +762,8 @@ def frozenlake_thesis_label_fn(params: dict[str, Any]) -> str:
 
     alpha_positive = agent_kwargs.get("alpha_positive")
     alpha_negative = agent_kwargs.get("alpha_negative")
-    if alpha_positive is not None and alpha_negative not in (None, 0):
-        ratio = float(alpha_positive) / float(alpha_negative)
-        return f"r={ratio:g}"
     if alpha_positive is not None and alpha_negative is not None:
-        return f"ap={alpha_positive}, an={alpha_negative}"
+        return f"ap={float(alpha_positive):.3f}, an={float(alpha_negative):.3f}"
 
     alpha_conf = agent_kwargs.get("alpha_conf")
     alpha_disconf = agent_kwargs.get("alpha_disconf")
@@ -771,11 +779,8 @@ def taxi_thesis_label_fn(params: dict[str, Any]) -> str:
 
     alpha_positive = agent_kwargs.get("alpha_positive")
     alpha_negative = agent_kwargs.get("alpha_negative")
-    if alpha_positive is not None and alpha_negative not in (None, 0):
-        ratio = float(alpha_positive) / float(alpha_negative)
-        return f"r={ratio:g}"
     if alpha_positive is not None and alpha_negative is not None:
-        return f"ap={alpha_positive}, an={alpha_negative}"
+        return f"ap={float(alpha_positive):.3f}, an={float(alpha_negative):.3f}"
 
     alpha_conf = agent_kwargs.get("alpha_conf")
     alpha_disconf = agent_kwargs.get("alpha_disconf")
