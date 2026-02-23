@@ -30,6 +30,7 @@ class EvaluateConfig:
     name: str = "sarsa_frozenlake"
     num_eval_episodes: int = 1000
     seed: int | None = 0
+    eval_seeds: list[int] | None = None
     max_episode_steps: int | None = None
     env_kwargs: Dict[str, Any] = None
     evaluation_metrics: Optional[Dict[str, Callable[[list[float]], float]]] = None
@@ -38,6 +39,15 @@ class EvaluateConfig:
 
 def _timestamp() -> str:
     return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+
+def _concat_metric_logs(metric_runs: list[Dict[str, list[float]]]) -> Dict[str, list[float]]:
+    """Concatenate per-run metric logs into a single metric dict."""
+    combined: Dict[str, list[float]] = {}
+    for metric_dict in metric_runs:
+        for metric_name, values in metric_dict.items():
+            combined.setdefault(metric_name, []).extend(list(values))
+    return combined
 
 
 def run_training(
@@ -75,20 +85,41 @@ def run_evaluation(
     if config.max_episode_steps is not None:
         env = TimeLimit(env, max_episode_steps=config.max_episode_steps)
 
-    eval_metrics = evaluator(
-        env,
-        agent,
-        num_episodes=config.num_eval_episodes,
-        seed=config.seed,
-        evaluation_metrics=config.evaluation_metrics,
-        td_error_metrics=config.td_error_metrics,
+    eval_seeds = (
+        [int(seed) for seed in config.eval_seeds]
+        if config.eval_seeds is not None
+        else [config.seed]
     )
+    if not eval_seeds:
+        raise ValueError("eval_seeds must be non-empty when provided")
+
+    metric_runs: list[Dict[str, list[float]]] = []
+    eval_by_seed: list[Dict[str, Any]] = []
+    for eval_seed in eval_seeds:
+        eval_metrics = evaluator(
+            env,
+            agent,
+            num_episodes=config.num_eval_episodes,
+            seed=eval_seed,
+            evaluation_metrics=config.evaluation_metrics,
+            td_error_metrics=config.td_error_metrics,
+        )
+        metric_runs.append(eval_metrics)
+        eval_by_seed.append(
+            {
+                "seed": eval_seed,
+                "eval": eval_metrics,
+            }
+        )
+
+    aggregated_eval_metrics = _concat_metric_logs(metric_runs)
 
     config_dict = asdict(config)
     evaluation_metrics: Dict[str, Any] = {
         "timestamp": _timestamp(),
         "config": config_dict,
-        "eval": eval_metrics,
+        "eval": aggregated_eval_metrics,
+        "eval_by_seed": eval_by_seed,
     }
 
     return evaluation_metrics
