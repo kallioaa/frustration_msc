@@ -156,6 +156,14 @@ class SarsaTD0PositivityBiasAgent:
 
                 td_error = td_target - self.q_table[state, action]
 
+                # Compute V-based TD error from the pre-update Q-derived value estimate.
+                if done:
+                    v_next = 0.0
+                else:
+                    v_next = self._v_from_q_eps_greedy(next_state)
+                v_state = self._v_from_q_eps_greedy(state)
+                td_error_v = float(reward) + self.config.gamma * v_next - v_state
+
                 # Base learning rate from TD-error valence
                 if td_error > 0:
                     alpha = self.config.alpha_positive
@@ -166,15 +174,6 @@ class SarsaTD0PositivityBiasAgent:
 
                 # TD update
                 self.q_table[state, action] += alpha * td_error
-
-                # calculate td_error for the state-value function V
-                if done:
-                    v_next = 0.0
-                else:
-                    v_next = self._v_from_q_eps_greedy(next_state)
-
-                v_state = self._v_from_q_eps_greedy(state)
-                td_error_v = float(reward) + self.config.gamma * v_next - v_state
 
                 # append errors to lists
                 episode_rewards.append(float(reward))

@@ -153,6 +153,15 @@ class SarsaTD0ConfirmationBiasAgent:
                     )
 
                 td_error = td_target - self.q_table[state, action]
+                # Compute V-based TD error from the pre-update Q-derived value estimate.
+                if done:
+                    v_next = 0.0
+                else:
+                    v_next = self._v_from_q_eps_greedy(next_state)
+
+                v_state = self._v_from_q_eps_greedy(state)
+                td_error_v = float(reward) + self.config.gamma * v_next - v_state
+
                 a_star = int(np.argmax(self.q_table[state]))
                 if action == a_star and td_error > 0.0:
                     episode_confirmatory_greedy_positive_updates += 1
@@ -171,14 +180,6 @@ class SarsaTD0ConfirmationBiasAgent:
                 else:
                     episode_disconfirmatory_updates += 1
                 self.q_table[state, action] += alpha * td_error
-
-                if done:
-                    v_next = 0.0
-                else:
-                    v_next = self._v_from_q_eps_greedy(next_state)
-
-                v_state = self._v_from_q_eps_greedy(state)
-                td_error_v = float(reward) + self.config.gamma * v_next - v_state
 
                 episode_rewards.append(float(reward))
                 episode_td_errors.append(float(td_error))

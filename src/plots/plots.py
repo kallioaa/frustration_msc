@@ -71,8 +71,17 @@ def plot_moving_average_multi(
     ylim: tuple[float, float] | None = None,
     save_path: str | Path | None = None,
     save_bbox_inches: str | None = "tight",
+    runs_by_label: dict[str, list[list[float]]] | None = None,
+    ci_level: float | None = None,
+    ci_method: str = "t",
+    ci_alpha: float = 0.15,
+    ci_min_runs: int = 2,
 ) -> None:
-    """Plot moving average for multiple parameter settings."""
+    """Plot moving average for multiple parameter settings.
+
+    When ``runs_by_label`` and ``ci_level`` are provided, draw pointwise
+    confidence-interval bands across smoothed per-run series (typically seeds).
+    """
     if window <= 0:
         raise ValueError("window must be a positive integer")
     if not series:
@@ -81,6 +90,12 @@ def plot_moving_average_multi(
         raise ValueError("start_episode must be >= 0")
     if end_episode is not None and end_episode <= start_episode:
         raise ValueError("end_episode must be greater than start_episode")
+    if ci_level is not None and not (0.0 < ci_level < 1.0):
+        raise ValueError("ci_level must be in (0, 1) or None")
+    if not (0.0 <= ci_alpha <= 1.0):
+        raise ValueError("ci_alpha must be in [0, 1]")
+    if ci_min_runs < 2:
+        raise ValueError("ci_min_runs must be >= 2")
 
     plt.figure(figsize=figsize)
     for label, values in series.items():
@@ -95,7 +110,54 @@ def plot_moving_average_multi(
             episode_offset + window - 1,
             episode_offset + len(values),
         )
-        plt.plot(x_values, moving_avg, label=label, alpha=line_alpha)
+
+        plot_x = x_values
+        plot_y = moving_avg
+        ci_lower = None
+        ci_upper = None
+
+        if runs_by_label is not None and ci_level is not None:
+            smoothed_runs: list[np.ndarray] = []
+            for run_values in runs_by_label.get(label, []):
+                run_sliced = run_values[start_episode:end_episode]
+                if len(run_sliced) < window:
+                    continue
+                run_array = np.asarray(run_sliced, dtype=float)
+                smoothed_runs.append(
+                    np.convolve(run_array, np.ones(window) / window, mode="valid")
+                )
+
+            if len(smoothed_runs) >= ci_min_runs:
+                min_len = min(len(run) for run in smoothed_runs)
+                stacked = np.asarray(
+                    [run[:min_len] for run in smoothed_runs],
+                    dtype=float,
+                )
+                n_runs = stacked.shape[0]
+                pointwise_mean = np.mean(stacked, axis=0)
+                if n_runs >= 2:
+                    pointwise_std = np.std(stacked, axis=0, ddof=1)
+                    pointwise_sem = pointwise_std / math.sqrt(n_runs)
+                    crit = _critical_value(level=ci_level, n=n_runs, method=ci_method)
+                    ci_half = crit * pointwise_sem
+                    ci_lower = pointwise_mean - ci_half
+                    ci_upper = pointwise_mean + ci_half
+                else:
+                    ci_lower = pointwise_mean
+                    ci_upper = pointwise_mean
+                plot_x = x_values[:min_len]
+                plot_y = pointwise_mean
+
+        line = plt.plot(plot_x, plot_y, label=label, alpha=line_alpha)[0]
+        if ci_lower is not None and ci_upper is not None:
+            plt.fill_between(
+                plot_x,
+                ci_lower,
+                ci_upper,
+                color=line.get_color(),
+                alpha=ci_alpha,
+                linewidth=0,
+            )
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

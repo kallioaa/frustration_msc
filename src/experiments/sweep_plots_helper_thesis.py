@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import math
 from typing import Any
 
 from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
@@ -61,7 +62,7 @@ def cliffwalking_training_thesis_config(
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
-        "use_td_error_v": True,
+        "use_td_error_v": False,
         "label_fn": cliffwalking_thesis_label_fn,
         "plot_specs": [
             {
@@ -309,7 +310,7 @@ def frozenlake_training_thesis_config(
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
-        "use_td_error_v": True,
+        "use_td_error_v": False,
         "label_fn": frozenlake_thesis_label_fn,
         "plot_specs": [
             {
@@ -513,7 +514,7 @@ def taxi_training_thesis_config(
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
-        "use_td_error_v": True,
+        "use_td_error_v": False,
         "label_fn": taxi_thesis_label_fn,
         "plot_specs": [
             {
@@ -731,52 +732,42 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
     }
 
 
-def cliffwalking_thesis_label_fn(params: dict[str, Any]) -> str:
-    """Compact, thesis-friendly labels for CliffWalking sweeps."""
-    agent_kwargs = params.get("agent_kwargs") or {}
-
+def _thesis_bias_lr_label(agent_kwargs: dict[str, Any]) -> str:
+    """Return compact labels, marking equal-rate settings as a shared baseline."""
     alpha_conf = agent_kwargs.get("alpha_conf")
     alpha_disconf = agent_kwargs.get("alpha_disconf")
     if alpha_conf is not None and alpha_disconf is not None:
-        return f"ac={alpha_conf}, ad={alpha_disconf}"
+        ac = float(alpha_conf)
+        ad = float(alpha_disconf)
+        if math.isclose(ac, ad, rel_tol=0.0, abs_tol=1e-12):
+            return f"a={ac:.3f}"
+        return f"ac={ac:.3f}, ad={ad:.3f}"
 
     alpha_positive = agent_kwargs.get("alpha_positive")
     alpha_negative = agent_kwargs.get("alpha_negative")
     if alpha_positive is not None and alpha_negative is not None:
-        return f"ap={float(alpha_positive):.3f}, an={float(alpha_negative):.3f}"
+        ap = float(alpha_positive)
+        an = float(alpha_negative)
+        if math.isclose(ap, an, rel_tol=0.0, abs_tol=1e-12):
+            return f"a={ap:.3f}"
+        return f"ap={ap:.3f}, an={an:.3f}"
 
     return str(agent_kwargs)
+
+
+def cliffwalking_thesis_label_fn(params: dict[str, Any]) -> str:
+    """Compact, thesis-friendly labels for CliffWalking sweeps."""
+    agent_kwargs = params.get("agent_kwargs") or {}
+    return _thesis_bias_lr_label(agent_kwargs)
 
 
 def frozenlake_thesis_label_fn(params: dict[str, Any]) -> str:
     """Compact, thesis-friendly labels for FrozenLake sweeps."""
     agent_kwargs = params.get("agent_kwargs") or {}
-
-    alpha_positive = agent_kwargs.get("alpha_positive")
-    alpha_negative = agent_kwargs.get("alpha_negative")
-    if alpha_positive is not None and alpha_negative is not None:
-        return f"ap={float(alpha_positive):.3f}, an={float(alpha_negative):.3f}"
-
-    alpha_conf = agent_kwargs.get("alpha_conf")
-    alpha_disconf = agent_kwargs.get("alpha_disconf")
-    if alpha_conf is not None and alpha_disconf is not None:
-        return f"ac={alpha_conf}, ad={alpha_disconf}"
-
-    return str(agent_kwargs)
+    return _thesis_bias_lr_label(agent_kwargs)
 
 
 def taxi_thesis_label_fn(params: dict[str, Any]) -> str:
     """Compact, thesis-friendly labels for Taxi-v3 sweeps."""
     agent_kwargs = params.get("agent_kwargs") or {}
-
-    alpha_positive = agent_kwargs.get("alpha_positive")
-    alpha_negative = agent_kwargs.get("alpha_negative")
-    if alpha_positive is not None and alpha_negative is not None:
-        return f"ap={float(alpha_positive):.3f}, an={float(alpha_negative):.3f}"
-
-    alpha_conf = agent_kwargs.get("alpha_conf")
-    alpha_disconf = agent_kwargs.get("alpha_disconf")
-    if alpha_conf is not None and alpha_disconf is not None:
-        return f"ac={alpha_conf}, ad={alpha_disconf}"
-
-    return str(agent_kwargs)
+    return _thesis_bias_lr_label(agent_kwargs)

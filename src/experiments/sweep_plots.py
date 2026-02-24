@@ -20,13 +20,15 @@ def plot_sweep_training(
     use_td_error_v: bool = False,
     save_dir: str | Path | None = None,
     save_format: str = "pdf",
+    title_suffix: str | None = None,
 ) -> None:
     """Plot training curves from sweep results using metric plot specs.
 
     When ``use_td_error_v`` is True, TD-error metrics are read from ``{key}_v``
     when available and fall back to ``key`` if the ``_v`` variant is missing.
     Optional ``plot_kwargs`` in each plot spec are forwarded to that metric's
-    ``plot_fn``.
+    ``plot_fn``. When ``title_suffix`` is provided, it is appended to each
+    plot title as ``"{title} ({title_suffix})"``.
     """
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
@@ -124,11 +126,14 @@ def plot_sweep_training(
                     extension=save_format,
                     used_names=used_filenames,
                 )
+            resolved_title = (
+                f"{title} ({title_suffix})" if title_suffix else title
+            )
             plot_fn(
                 series_by_label,
                 window=window_size,
                 ylabel=ylabel,
-                title=title,
+                title=resolved_title,
                 xlabel=xlabel,
                 start_episode=start_episode,
                 end_episode=end_episode,
@@ -145,11 +150,13 @@ def plot_sweep_evaluation(
     end_episode: int | None = None,
     save_dir: str | Path | None = None,
     save_format: str = "pdf",
+    title_suffix: str | None = None,
 ) -> None:
     """Plot evaluation curves from sweep results using metric plot specs.
 
     Optional ``plot_kwargs`` in each plot spec are forwarded to that metric's
-    ``plot_fn``.
+    ``plot_fn``. When ``title_suffix`` is provided, it is appended to each
+    plot title as ``"{title} ({title_suffix})"``.
     """
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
@@ -232,11 +239,14 @@ def plot_sweep_evaluation(
                     extension=save_format,
                     used_names=used_filenames,
                 )
+            resolved_title = (
+                f"{title} ({title_suffix})" if title_suffix else title
+            )
             plot_fn(
                 series_by_label,
                 window=window_size,
                 ylabel=ylabel,
-                title=title,
+                title=resolved_title,
                 xlabel=xlabel,
                 start_episode=start_episode,
                 end_episode=end_episode,
