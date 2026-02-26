@@ -66,6 +66,7 @@ def plot_moving_average_multi(
     legend_bbox_to_anchor: tuple[float, float] | None = None,
     show_legend: bool = True,
     line_alpha: float = 1.0,
+    colors_by_label: dict[str, str] | None = None,
     grid_alpha: float = 1.0,
     tight_layout: bool = False,
     ylim: tuple[float, float] | None = None,
@@ -148,7 +149,10 @@ def plot_moving_average_multi(
                 plot_x = x_values[:min_len]
                 plot_y = pointwise_mean
 
-        line = plt.plot(plot_x, plot_y, label=label, alpha=line_alpha)[0]
+        line_kwargs = {"label": label, "alpha": line_alpha}
+        if colors_by_label is not None and label in colors_by_label:
+            line_kwargs["color"] = colors_by_label[label]
+        line = plt.plot(plot_x, plot_y, **line_kwargs)[0]
         if ci_lower is not None and ci_upper is not None:
             plt.fill_between(
                 plot_x,
@@ -189,6 +193,8 @@ def plot_bar_mean_multi(
     xtick_rotation: float = 25,
     xtick_ha: str = "right",
     bar_alpha: float = 1.0,
+    bar_order: str = "original",
+    colors_by_label: dict[str, str] | None = None,
     grid_alpha: float = 0.3,
     tight_layout: bool = True,
     ylim: tuple[float, float] | None = None,
@@ -213,6 +219,18 @@ def plot_bar_mean_multi(
         raise ValueError("end_episode must be greater than start_episode")
     if ci_level is not None and not (0.0 < ci_level < 1.0):
         raise ValueError("ci_level must be in (0, 1) or None")
+    valid_bar_orders = {
+        "original",
+        "mean_desc",
+        "mean_asc",
+        "highest_to_lowest",
+        "lowest_to_highest",
+    }
+    if bar_order not in valid_bar_orders:
+        raise ValueError(
+            "bar_order must be one of "
+            f"{sorted(valid_bar_orders)}; got {bar_order!r}"
+        )
 
     labels: list[str] = []
     means: list[float] = []
@@ -248,9 +266,20 @@ def plot_bar_mean_multi(
     if not labels:
         raise ValueError("no values available after slicing for any series")
 
+    if bar_order in {"mean_desc", "highest_to_lowest", "mean_asc", "lowest_to_highest"}:
+        rows = list(zip(labels, means, lower_errs, upper_errs, strict=False))
+        reverse = bar_order in {"mean_desc", "highest_to_lowest"}
+        rows.sort(key=lambda row: row[1], reverse=reverse)
+        labels = [row[0] for row in rows]
+        means = [row[1] for row in rows]
+        lower_errs = [row[2] for row in rows]
+        upper_errs = [row[3] for row in rows]
+
     plt.figure(figsize=figsize)
     x = np.arange(len(labels))
     bar_kwargs = {"alpha": bar_alpha}
+    if colors_by_label is not None and all(label in colors_by_label for label in labels):
+        bar_kwargs["color"] = [colors_by_label[label] for label in labels]
     if ci_level is not None and any(err > 0.0 for err in lower_errs + upper_errs):
         bar_kwargs["yerr"] = np.vstack([lower_errs, upper_errs])
         bar_kwargs["capsize"] = ci_capsize

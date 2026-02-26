@@ -11,6 +11,32 @@ from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
 THESIS_FIGSIZE = (5.9, 3.32)
 
 
+def _apply_bias_gradient_color_toggle(
+    config: dict[str, Any],
+    enabled: bool,
+) -> None:
+    """Write the bias-gradient color toggle into every plot spec's plot_kwargs."""
+    config["enable_bias_gradient_colors"] = bool(enabled)
+    for spec in config.get("plot_specs", []):
+        plot_kwargs = dict(spec.get("plot_kwargs") or {})
+        plot_kwargs["enable_bias_gradient_colors"] = bool(enabled)
+        spec["plot_kwargs"] = plot_kwargs
+
+
+def _apply_bar_plot_order(
+    config: dict[str, Any],
+    bar_order: str,
+) -> None:
+    """Write bar ordering into bar-plot specs only."""
+    config["bar_order"] = bar_order
+    for spec in config.get("plot_specs", []):
+        if spec.get("plot_fn") is not plot_bar_mean_multi:
+            continue
+        plot_kwargs = dict(spec.get("plot_kwargs") or {})
+        plot_kwargs["bar_order"] = bar_order
+        spec["plot_kwargs"] = plot_kwargs
+
+
 def _spec_override_key(spec: dict[str, Any]) -> str | None:
     """Return the key used for per-plot override maps."""
     override_key = spec.get("override_key")
@@ -26,6 +52,8 @@ def _with_config_overrides(
 ) -> dict[str, Any]:
     """Return a deep-copied plot config with top-level and per-metric overrides."""
     updated = deepcopy(config)
+    _apply_bias_gradient_color_toggle(updated, enabled=False)
+    _apply_bar_plot_order(updated, bar_order="original")
 
     if not overrides:
         return updated
@@ -33,9 +61,20 @@ def _with_config_overrides(
     override_dict = dict(overrides)
     ylims_by_key = override_dict.pop("ylims_by_key", None)
     plot_kwargs_by_key = override_dict.pop("plot_kwargs_by_key", None)
+    enable_bias_gradient_colors = override_dict.pop("enable_bias_gradient_colors", None)
+    bar_order = override_dict.pop("bar_order", None)
+    evaluation_bar_order = override_dict.pop("evaluation_bar_order", None)
 
     for key, value in override_dict.items():
         updated[key] = value
+
+    if enable_bias_gradient_colors is not None:
+        _apply_bias_gradient_color_toggle(updated, enabled=bool(enable_bias_gradient_colors))
+    resolved_bar_order = (
+        evaluation_bar_order if evaluation_bar_order is not None else bar_order
+    )
+    if resolved_bar_order is not None:
+        _apply_bar_plot_order(updated, bar_order=str(resolved_bar_order))
 
     if ylims_by_key:
         for spec in updated.get("plot_specs", []):
@@ -246,9 +285,11 @@ def cliffwalking_training_thesis_config(
     return _with_config_overrides(config, overrides)
 
 
-def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
+def cliffwalking_evaluation_thesis_config(
+    overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Return thesis-oriented config for CliffWalking evaluation plots."""
-    return {
+    config = {
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
@@ -346,6 +387,7 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
             },
         ],
     }
+    return _with_config_overrides(config, overrides)
 
 
 def frozenlake_training_thesis_config(
@@ -487,9 +529,11 @@ def frozenlake_training_thesis_config(
     return _with_config_overrides(config, overrides)
 
 
-def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
+def frozenlake_evaluation_thesis_config(
+    overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Return thesis-oriented config for FrozenLake evaluation plots."""
-    return {
+    config = {
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
@@ -587,6 +631,7 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
             },
         ],
     }
+    return _with_config_overrides(config, overrides)
 
 
 def taxi_training_thesis_config(
@@ -739,9 +784,11 @@ def taxi_training_thesis_config(
     return _with_config_overrides(config, overrides)
 
 
-def taxi_evaluation_thesis_config() -> dict[str, Any]:
+def taxi_evaluation_thesis_config(
+    overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Return thesis-oriented config for Taxi-v3 evaluation plots."""
-    return {
+    config = {
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
@@ -850,6 +897,7 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
             },
         ],
     }
+    return _with_config_overrides(config, overrides)
 
 
 def _thesis_bias_lr_label(agent_kwargs: dict[str, Any]) -> str:

@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import inspect
+import math
 import re
 from pathlib import Path
 from typing import Any, Callable, Dict
 
+from matplotlib import cm
+from matplotlib import colors as mcolors
 import numpy as np
 
 
@@ -124,6 +127,7 @@ def plot_sweep_training(
             metric_runs.append(values)
 
     used_filenames: set[str] = set()
+    auto_colors_by_label = _build_bias_colors_by_label(grouped=grouped, label_fn=label_fn)
     for (
         source,
         metric_key,
@@ -147,8 +151,24 @@ def plot_sweep_training(
             runs_by_label[label] = runs
         if series_by_label:
             call_plot_kwargs = dict(plot_kwargs)
+            enable_bias_gradient_colors = bool(
+                call_plot_kwargs.pop("enable_bias_gradient_colors", False)
+            )
             if _plot_fn_supports_arg(plot_fn, "runs_by_label"):
                 call_plot_kwargs["runs_by_label"] = runs_by_label
+            if (
+                enable_bias_gradient_colors
+                and auto_colors_by_label is not None
+                and "colors_by_label" not in call_plot_kwargs
+                and _plot_fn_supports_arg(plot_fn, "colors_by_label")
+            ):
+                colors_for_metric = {
+                    label: auto_colors_by_label[label]
+                    for label in series_by_label
+                    if label in auto_colors_by_label
+                }
+                if colors_for_metric:
+                    call_plot_kwargs["colors_by_label"] = colors_for_metric
             if save_dir_path is not None and _plot_fn_supports_arg(
                 plot_fn, "save_path"
             ):
@@ -255,6 +275,7 @@ def plot_sweep_evaluation(
             metric_runs.append(values)
 
     used_filenames: set[str] = set()
+    auto_colors_by_label = _build_bias_colors_by_label(grouped=grouped, label_fn=label_fn)
     for (
         metric_key,
         ylabel,
@@ -277,8 +298,24 @@ def plot_sweep_evaluation(
             runs_by_label[label] = runs
         if series_by_label:
             call_plot_kwargs = dict(plot_kwargs)
+            enable_bias_gradient_colors = bool(
+                call_plot_kwargs.pop("enable_bias_gradient_colors", False)
+            )
             if _plot_fn_supports_arg(plot_fn, "runs_by_label"):
                 call_plot_kwargs["runs_by_label"] = runs_by_label
+            if (
+                enable_bias_gradient_colors
+                and auto_colors_by_label is not None
+                and "colors_by_label" not in call_plot_kwargs
+                and _plot_fn_supports_arg(plot_fn, "colors_by_label")
+            ):
+                colors_for_metric = {
+                    label: auto_colors_by_label[label]
+                    for label in series_by_label
+                    if label in auto_colors_by_label
+                }
+                if colors_for_metric:
+                    call_plot_kwargs["colors_by_label"] = colors_for_metric
             if save_dir_path is not None and _plot_fn_supports_arg(
                 plot_fn, "save_path"
             ):
@@ -439,6 +476,115 @@ def _plot_fn_supports_arg(plot_fn: Callable[..., Any], arg_name: str) -> bool:
         if param.kind == inspect.Parameter.VAR_KEYWORD:
             return True
     return arg_name in signature.parameters
+
+
+def _build_bias_colors_by_label(
+    grouped: Dict[tuple, Dict[str, Any]],
+    label_fn: Callable[[Dict[str, Any]], str] | None,
+) -> dict[str, str] | None:
+    """Return per-label colors for baseline/confirmation/positivity sweeps.
+
+    The color family encodes agent type and within-family intensity encodes bias
+    strength. Equal-rate biased agents are treated as baseline.
+    """
+    label_infos: list[tuple[str, str, float]] = []
+    baseline_strengths: list[float] = []
+    conf_strengths: list[float] = []
+    pos_strengths: list[float] = []
+
+    for entry in grouped.values():
+        params = entry.get("params") or {}
+        agent_kwargs = dict(params.get("agent_kwargs") or {})
+        label = label_fn(params) if label_fn else _format_sweep_label(params)
+        kind, strength = _bias_style_kind_and_strength(agent_kwargs)
+        if kind is None:
+            continue
+        label_infos.append((label, kind, strength))
+        if kind == "baseline":
+            baseline_strengths.append(strength)
+        elif kind == "confirmation":
+            conf_strengths.append(strength)
+        elif kind == "positivity":
+            pos_strengths.append(strength)
+
+    if not label_infos:
+        return None
+
+    baseline_max = max(baseline_strengths) if baseline_strengths else 0.0
+    conf_max = max(conf_strengths) if conf_strengths else 0.0
+    pos_max = max(pos_strengths) if pos_strengths else 0.0
+    colors_by_label: dict[str, str] = {}
+
+    for label, kind, strength in label_infos:
+        if kind == "baseline":
+            norm = 1.0 if baseline_max <= 0.0 else strength / baseline_max
+            colors_by_label[label] = _sample_strength_color("Greens", norm)
+            continue
+        if kind == "confirmation":
+            norm = 1.0 if conf_max <= 0.0 else strength / conf_max
+            colors_by_label[label] = _sample_strength_color("Blues", norm)
+            continue
+        if kind == "positivity":
+            norm = 1.0 if pos_max <= 0.0 else strength / pos_max
+            colors_by_label[label] = _sample_strength_color("Oranges", norm)
+            continue
+
+    return colors_by_label or None
+
+
+def _bias_style_kind_and_strength(agent_kwargs: Dict[str, Any]) -> tuple[str | None, float]:
+    """Classify agent into a color family and compute raw bias strength."""
+    alpha_conf = agent_kwargs.get("alpha_conf")
+    alpha_disconf = agent_kwargs.get("alpha_disconf")
+    if alpha_conf is not None and alpha_disconf is not None:
+        try:
+            ac = float(alpha_conf)
+            ad = float(alpha_disconf)
+        except (TypeError, ValueError):
+            return (None, 0.0)
+        if math.isclose(ac, ad, rel_tol=0.0, abs_tol=1e-12):
+            baseline_strength = 0.5 * (abs(ac) + abs(ad))
+            return ("baseline", float(baseline_strength))
+        denom = abs(ac) + abs(ad)
+        strength = abs(ac - ad) / denom if denom > 0.0 else abs(ac - ad)
+        return ("confirmation", float(strength))
+
+    alpha_positive = agent_kwargs.get("alpha_positive")
+    alpha_negative = agent_kwargs.get("alpha_negative")
+    if alpha_positive is not None and alpha_negative is not None:
+        try:
+            ap = float(alpha_positive)
+            an = float(alpha_negative)
+        except (TypeError, ValueError):
+            return (None, 0.0)
+        if math.isclose(ap, an, rel_tol=0.0, abs_tol=1e-12):
+            baseline_strength = 0.5 * (abs(ap) + abs(an))
+            return ("baseline", float(baseline_strength))
+        if ap > 0.0 and an > 0.0:
+            strength = abs(math.log(ap / an))
+        else:
+            denom = abs(ap) + abs(an)
+            strength = abs(ap - an) / denom if denom > 0.0 else abs(ap - an)
+        return ("positivity", float(strength))
+
+    for key in ("alpha", "learning_rate"):
+        if key not in agent_kwargs:
+            continue
+        try:
+            return ("baseline", abs(float(agent_kwargs[key])))
+        except (TypeError, ValueError):
+            return (None, 0.0)
+
+    return (None, 0.0)
+
+
+def _sample_strength_color(cmap_name: str, strength_norm: float) -> str:
+    """Map normalized strength in [0, 1] to a readable colormap intensity."""
+    t = min(max(float(strength_norm), 0.0), 1.0)
+    # Avoid the very pale colormap region so weak lines remain visible.
+    color_t = 0.35 + 0.60 * t
+    rgba = cm.get_cmap(cmap_name)(color_t)
+    return str(mcolors.to_hex(rgba))
 
 
 def _build_plot_save_path(
