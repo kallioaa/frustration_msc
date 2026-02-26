@@ -27,8 +27,10 @@ def plot_sweep_training(
     When ``use_td_error_v`` is True, TD-error metrics are read from ``{key}_v``
     when available and fall back to ``key`` if the ``_v`` variant is missing.
     Optional ``plot_kwargs`` in each plot spec are forwarded to that metric's
-    ``plot_fn``. When ``title_suffix`` is provided, it is appended to each
-    plot title as ``"{title} ({title_suffix})"``.
+    ``plot_fn``. Training plot specs may additionally define
+    ``metric_transform="abs"`` to transform each run series before aggregation.
+    When ``title_suffix`` is provided, it is appended to each plot title as
+    ``"{title} ({title_suffix})"``.
     """
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
@@ -36,7 +38,16 @@ def plot_sweep_training(
     if save_dir_path is not None:
         save_dir_path.mkdir(parents=True, exist_ok=True)
     metric_specs: list[
-        tuple[str, str, str, str, str, Callable[..., Any], dict[str, Any]]
+        tuple[
+            str,
+            str,
+            str,
+            str,
+            str,
+            Callable[..., Any],
+            dict[str, Any],
+            str | None,
+        ]
     ] = []
     for spec in plot_specs:
         source = spec.get("source")
@@ -46,6 +57,7 @@ def plot_sweep_training(
         xlabel = spec.get("xlabel", "Episode")
         plot_fn = spec.get("plot_fn")
         plot_kwargs = spec.get("plot_kwargs", {})
+        metric_transform = spec.get("metric_transform")
         if source not in {"reward", "td_error"}:
             raise ValueError(f"Unsupported metric source: {source}")
         if not isinstance(key, str) or not key:
@@ -62,7 +74,13 @@ def plot_sweep_training(
             raise ValueError(f"Each plot spec must include callable plot_fn for {key}")
         if not isinstance(plot_kwargs, dict):
             raise ValueError(f"plot_kwargs must be a dict for {key}")
-        metric_specs.append((source, key, ylabel, title, xlabel, plot_fn, plot_kwargs))
+        if metric_transform is not None and metric_transform != "abs":
+            raise ValueError(
+                f"Unsupported metric_transform for {key}: {metric_transform!r}"
+            )
+        metric_specs.append(
+            (source, key, ylabel, title, xlabel, plot_fn, plot_kwargs, metric_transform)
+        )
 
     grouped: Dict[tuple, Dict[str, Any]] = {}
 
@@ -83,7 +101,7 @@ def plot_sweep_training(
             },
         )
 
-        for source, metric_key, _, _, _, _, _ in metric_specs:
+        for source, metric_key, _, _, _, _, _, metric_transform in metric_specs:
             source_metrics = reward_metrics if source == "reward" else td_error_metrics
             resolved_metric_key = metric_key
             if source == "td_error" and use_td_error_v:
@@ -93,14 +111,30 @@ def plot_sweep_training(
                 )
             values = source_metrics.get(resolved_metric_key)
             if values is None:
+                values = _derive_training_metric_series(
+                    metric_key=metric_key,
+                    params=params,
+                    td_error_metrics=td_error_metrics,
+                )
+            if values is None:
                 continue
-            metric_id = f"{source}:{metric_key}"
+            values = _transform_metric_series(values, metric_transform)
+            metric_id = f"{source}:{metric_key}:{metric_transform or 'none'}"
             metric_runs = entry["metric_runs"].setdefault(metric_id, [])
             metric_runs.append(values)
 
     used_filenames: set[str] = set()
-    for source, metric_key, ylabel, title, xlabel, plot_fn, plot_kwargs in metric_specs:
-        metric_id = f"{source}:{metric_key}"
+    for (
+        source,
+        metric_key,
+        ylabel,
+        title,
+        xlabel,
+        plot_fn,
+        plot_kwargs,
+        metric_transform,
+    ) in metric_specs:
+        metric_id = f"{source}:{metric_key}:{metric_transform or 'none'}"
         series_by_label: Dict[str, list[float]] = {}
         runs_by_label: Dict[str, list[list[float]]] = {}
         for entry in grouped.values():
@@ -115,9 +149,8 @@ def plot_sweep_training(
             call_plot_kwargs = dict(plot_kwargs)
             if _plot_fn_supports_arg(plot_fn, "runs_by_label"):
                 call_plot_kwargs["runs_by_label"] = runs_by_label
-            if (
-                save_dir_path is not None
-                and _plot_fn_supports_arg(plot_fn, "save_path")
+            if save_dir_path is not None and _plot_fn_supports_arg(
+                plot_fn, "save_path"
             ):
                 call_plot_kwargs["save_path"] = _build_plot_save_path(
                     save_dir_path=save_dir_path,
@@ -126,9 +159,7 @@ def plot_sweep_training(
                     extension=save_format,
                     used_names=used_filenames,
                 )
-            resolved_title = (
-                f"{title} ({title_suffix})" if title_suffix else title
-            )
+            resolved_title = f"{title} ({title_suffix})" if title_suffix else title
             plot_fn(
                 series_by_label,
                 window=window_size,
@@ -155,8 +186,10 @@ def plot_sweep_evaluation(
     """Plot evaluation curves from sweep results using metric plot specs.
 
     Optional ``plot_kwargs`` in each plot spec are forwarded to that metric's
-    ``plot_fn``. When ``title_suffix`` is provided, it is appended to each
-    plot title as ``"{title} ({title_suffix})"``.
+    ``plot_fn``. Evaluation plot specs may additionally define
+    ``metric_transform="abs"`` to transform each run series before aggregation.
+    When ``title_suffix`` is provided, it is appended to each plot title as
+    ``"{title} ({title_suffix})"``.
     """
     if not plot_specs:
         raise ValueError("plot_specs must be provided and non-empty")
@@ -164,7 +197,7 @@ def plot_sweep_evaluation(
     if save_dir_path is not None:
         save_dir_path.mkdir(parents=True, exist_ok=True)
     metric_specs: list[
-        tuple[str, str, str, str, Callable[..., Any], dict[str, Any]]
+        tuple[str, str, str, str, Callable[..., Any], dict[str, Any], str | None]
     ] = []
     for spec in plot_specs:
         key = spec.get("key")
@@ -173,6 +206,7 @@ def plot_sweep_evaluation(
         xlabel = spec.get("xlabel", "Episode")
         plot_fn = spec.get("plot_fn")
         plot_kwargs = spec.get("plot_kwargs", {})
+        metric_transform = spec.get("metric_transform")
         if not isinstance(key, str) or not key:
             raise ValueError("Each plot spec must include a non-empty string key")
         if not isinstance(ylabel, str) or not ylabel:
@@ -187,7 +221,13 @@ def plot_sweep_evaluation(
             raise ValueError(f"Each plot spec must include callable plot_fn for {key}")
         if not isinstance(plot_kwargs, dict):
             raise ValueError(f"plot_kwargs must be a dict for {key}")
-        metric_specs.append((key, ylabel, title, xlabel, plot_fn, plot_kwargs))
+        if metric_transform is not None and metric_transform != "abs":
+            raise ValueError(
+                f"Unsupported metric_transform for {key}: {metric_transform!r}"
+            )
+        metric_specs.append(
+            (key, ylabel, title, xlabel, plot_fn, plot_kwargs, metric_transform)
+        )
 
     grouped: Dict[tuple, Dict[str, Any]] = {}
 
@@ -205,19 +245,30 @@ def plot_sweep_evaluation(
             },
         )
 
-        for metric_key, _, _, _, _, _ in metric_specs:
+        for metric_key, _, _, _, _, _, metric_transform in metric_specs:
             values = evaluation.get(metric_key)
             if values is None:
                 continue
-            metric_runs = entry["metric_runs"].setdefault(metric_key, [])
+            metric_id = f"{metric_key}:{metric_transform or 'none'}"
+            values = _transform_metric_series(values, metric_transform)
+            metric_runs = entry["metric_runs"].setdefault(metric_id, [])
             metric_runs.append(values)
 
     used_filenames: set[str] = set()
-    for metric_key, ylabel, title, xlabel, plot_fn, plot_kwargs in metric_specs:
+    for (
+        metric_key,
+        ylabel,
+        title,
+        xlabel,
+        plot_fn,
+        plot_kwargs,
+        metric_transform,
+    ) in metric_specs:
+        metric_id = f"{metric_key}:{metric_transform or 'none'}"
         series_by_label: Dict[str, list[float]] = {}
         runs_by_label: Dict[str, list[list[float]]] = {}
         for entry in grouped.values():
-            runs = entry["metric_runs"].get(metric_key, [])
+            runs = entry["metric_runs"].get(metric_id, [])
             if not runs:
                 continue
             params = entry["params"]
@@ -228,9 +279,8 @@ def plot_sweep_evaluation(
             call_plot_kwargs = dict(plot_kwargs)
             if _plot_fn_supports_arg(plot_fn, "runs_by_label"):
                 call_plot_kwargs["runs_by_label"] = runs_by_label
-            if (
-                save_dir_path is not None
-                and _plot_fn_supports_arg(plot_fn, "save_path")
+            if save_dir_path is not None and _plot_fn_supports_arg(
+                plot_fn, "save_path"
             ):
                 call_plot_kwargs["save_path"] = _build_plot_save_path(
                     save_dir_path=save_dir_path,
@@ -239,9 +289,7 @@ def plot_sweep_evaluation(
                     extension=save_format,
                     used_names=used_filenames,
                 )
-            resolved_title = (
-                f"{title} ({title_suffix})" if title_suffix else title
-            )
+            resolved_title = f"{title} ({title_suffix})" if title_suffix else title
             plot_fn(
                 series_by_label,
                 window=window_size,
@@ -317,6 +365,68 @@ def _mean_series(series_list: list[list[float]]) -> list[float]:
         return []
     stacked = np.array([series[:min_len] for series in series_list], dtype=float)
     return list(np.mean(stacked, axis=0))
+
+
+def _derive_training_metric_series(
+    metric_key: str,
+    params: Dict[str, Any],
+    td_error_metrics: Dict[str, list[float]],
+) -> list[float] | None:
+    """Derive synthetic training metrics from saved params and episode logs."""
+    if metric_key == "effective_learning_rate_per_episode":
+        return _effective_learning_rate_per_episode(
+            params=params,
+            td_error_metrics=td_error_metrics,
+        )
+
+    return None
+
+
+def _effective_learning_rate_per_episode(
+    params: Dict[str, Any],
+    td_error_metrics: Dict[str, list[float]],
+) -> list[float] | None:
+    """Return per-episode effective learning rate for biased SARSA agents."""
+    agent_kwargs = dict(params.get("agent_kwargs") or {})
+
+    # Positivity-bias SARSA switches between alpha_positive/alpha_negative.
+    if "alpha_positive" in agent_kwargs and "alpha_negative" in agent_kwargs:
+        ratio = td_error_metrics.get("positive_lr_update_ratio_per_episode")
+        if not ratio:
+            return None
+        try:
+            alpha_pos = float(agent_kwargs["alpha_positive"])
+            alpha_neg = float(agent_kwargs["alpha_negative"])
+        except (TypeError, ValueError):
+            return None
+        r = np.asarray(ratio, dtype=float)
+        return list(alpha_neg + r * (alpha_pos - alpha_neg))
+
+    # Confirmation-bias SARSA switches between alpha_conf/alpha_disconf.
+    if "alpha_conf" in agent_kwargs and "alpha_disconf" in agent_kwargs:
+        ratio = td_error_metrics.get("confirmatory_update_ratio_per_episode")
+        if not ratio:
+            return None
+        try:
+            alpha_conf = float(agent_kwargs["alpha_conf"])
+            alpha_disconf = float(agent_kwargs["alpha_disconf"])
+        except (TypeError, ValueError):
+            return None
+        r = np.asarray(ratio, dtype=float)
+        return list(alpha_disconf + r * (alpha_conf - alpha_disconf))
+
+    return None
+
+
+def _transform_metric_series(
+    values: list[float], metric_transform: str | None
+) -> list[float]:
+    """Apply an optional transform to a metric series."""
+    if metric_transform is None:
+        return list(values)
+    if metric_transform == "abs":
+        return list(np.abs(np.asarray(values, dtype=float)))
+    raise ValueError(f"Unsupported metric_transform: {metric_transform}")
 
 
 def _plot_fn_supports_arg(plot_fn: Callable[..., Any], arg_name: str) -> bool:

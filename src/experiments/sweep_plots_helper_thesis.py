@@ -11,6 +11,15 @@ from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
 THESIS_FIGSIZE = (5.9, 3.32)
 
 
+def _spec_override_key(spec: dict[str, Any]) -> str | None:
+    """Return the key used for per-plot override maps."""
+    override_key = spec.get("override_key")
+    if override_key is not None:
+        return override_key
+    key = spec.get("key")
+    return key if isinstance(key, str) else None
+
+
 def _with_config_overrides(
     config: dict[str, Any],
     overrides: dict[str, Any] | None = None,
@@ -30,7 +39,7 @@ def _with_config_overrides(
 
     if ylims_by_key:
         for spec in updated.get("plot_specs", []):
-            key = spec.get("key")
+            key = _spec_override_key(spec)
             if key not in ylims_by_key:
                 continue
             plot_kwargs = dict(spec.get("plot_kwargs") or {})
@@ -43,7 +52,7 @@ def _with_config_overrides(
 
     if plot_kwargs_by_key:
         for spec in updated.get("plot_specs", []):
-            metric_key = spec.get("key")
+            metric_key = _spec_override_key(spec)
             metric_overrides = plot_kwargs_by_key.get(metric_key)
             if not metric_overrides:
                 continue
@@ -62,7 +71,7 @@ def cliffwalking_training_thesis_config(
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
-        "use_td_error_v": False,
+        "use_td_error_v": True,
         "label_fn": cliffwalking_thesis_label_fn,
         "plot_specs": [
             {
@@ -133,6 +142,19 @@ def cliffwalking_training_thesis_config(
             },
             {
                 "source": "td_error",
+                "key": "negative_td_error_sum_per_episode",
+                "metric_transform": "abs",
+                "override_key": "reward_loss_per_episode",
+                "ylabel": "Reward Loss",
+                "title": "CliffWalking: Reward Loss",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
                 "key": "frustration_rate_per_episode",
                 "ylabel": "Frustration Rate",
                 "title": "CliffWalking: Frustration Rate",
@@ -158,6 +180,17 @@ def cliffwalking_training_thesis_config(
                 "key": "positive_lr_update_ratio_per_episode",
                 "ylabel": "Positive-LR Update Ratio",
                 "title": "CliffWalking: Positive-LR Update Ratio",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "effective_learning_rate_per_episode",
+                "ylabel": "Effective Learning Rate",
+                "title": "CliffWalking: Effective Learning Rate",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -277,6 +310,19 @@ def cliffwalking_evaluation_thesis_config() -> dict[str, Any]:
                 },
             },
             {
+                "key": "negative_td_error_sum_per_episode",
+                "metric_transform": "abs",
+                "override_key": "reward_loss_per_episode",
+                "ylabel": "Reward Loss",
+                "title": "CliffWalking Thesis: Evaluation Reward Loss",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
                 "key": "cliff_falls_per_episode",
                 "ylabel": "Cliff Falls",
                 "title": "CliffWalking Thesis: Evaluation Falls Per Episode",
@@ -310,7 +356,7 @@ def frozenlake_training_thesis_config(
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
-        "use_td_error_v": False,
+        "use_td_error_v": True,
         "label_fn": frozenlake_thesis_label_fn,
         "plot_specs": [
             {
@@ -381,6 +427,19 @@ def frozenlake_training_thesis_config(
             },
             {
                 "source": "td_error",
+                "key": "negative_td_error_sum_per_episode",
+                "metric_transform": "abs",
+                "override_key": "reward_loss_per_episode",
+                "ylabel": "Reward Loss",
+                "title": "FrozenLake: Reward Loss",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
                 "key": "frustration_rate_per_episode",
                 "ylabel": "Frustration Rate",
                 "title": "FrozenLake: Frustration Rate",
@@ -406,6 +465,17 @@ def frozenlake_training_thesis_config(
                 "key": "positive_lr_update_ratio_per_episode",
                 "ylabel": "Positive-LR Update Ratio",
                 "title": "FrozenLake: Positive-LR Update Ratio",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "effective_learning_rate_per_episode",
+                "ylabel": "Effective Learning Rate",
+                "title": "FrozenLake: Effective Learning Rate",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -492,6 +562,19 @@ def frozenlake_evaluation_thesis_config() -> dict[str, Any]:
                 },
             },
             {
+                "key": "negative_td_error_sum_per_episode",
+                "metric_transform": "abs",
+                "override_key": "reward_loss_per_episode",
+                "ylabel": "Reward Loss",
+                "title": "FrozenLake Thesis: Evaluation Reward Loss",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
                 "key": "frustration_rate_per_episode",
                 "ylabel": "Frustration Rate",
                 "title": "FrozenLake Thesis: Evaluation Frustration Rate",
@@ -514,7 +597,7 @@ def taxi_training_thesis_config(
         "window_size": 100,
         "start_episode": 0,
         "end_episode": None,
-        "use_td_error_v": False,
+        "use_td_error_v": True,
         "label_fn": taxi_thesis_label_fn,
         "plot_specs": [
             {
@@ -596,6 +679,19 @@ def taxi_training_thesis_config(
             },
             {
                 "source": "td_error",
+                "key": "negative_td_error_sum_per_episode",
+                "metric_transform": "abs",
+                "override_key": "reward_loss_per_episode",
+                "ylabel": "Reward Loss",
+                "title": "Taxi-v3: Reward Loss",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
                 "key": "frustration_rate_per_episode",
                 "ylabel": "Frustration Rate",
                 "title": "Taxi-v3: Frustration Rate",
@@ -621,6 +717,17 @@ def taxi_training_thesis_config(
                 "key": "positive_lr_update_ratio_per_episode",
                 "ylabel": "Positive-LR Update Ratio",
                 "title": "Taxi-v3: Positive-LR Update Ratio",
+                "plot_fn": plot_moving_average_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "legend_loc": "best",
+                },
+            },
+            {
+                "source": "td_error",
+                "key": "effective_learning_rate_per_episode",
+                "ylabel": "Effective Learning Rate",
+                "title": "Taxi-v3: Effective Learning Rate",
                 "plot_fn": plot_moving_average_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -710,6 +817,19 @@ def taxi_evaluation_thesis_config() -> dict[str, Any]:
                 "key": "negative_td_error_sum_per_episode",
                 "ylabel": "Negative TD Error Sum",
                 "title": "Taxi-v3 Thesis: Evaluation Negative TD Error Sum",
+                "plot_fn": plot_bar_mean_multi,
+                "plot_kwargs": {
+                    "figsize": THESIS_FIGSIZE,
+                    "xtick_rotation": 45,
+                    "xtick_ha": "right",
+                },
+            },
+            {
+                "key": "negative_td_error_sum_per_episode",
+                "metric_transform": "abs",
+                "override_key": "reward_loss_per_episode",
+                "ylabel": "Reward Loss",
+                "title": "Taxi-v3 Thesis: Evaluation Reward Loss",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
