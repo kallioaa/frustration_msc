@@ -9,6 +9,19 @@ from typing import Any
 from plots.plots import plot_bar_mean_multi, plot_moving_average_multi
 
 THESIS_FIGSIZE = (5.9, 3.32)
+_CONFIRMATION_BIAS_LR_LABELS = {
+    "Strong Confirmatory": (0.325, 0.075),
+    "Moderate Confirmatory": (0.250, 0.150),
+    "Moderate Disconfirmatory": (0.150, 0.250),
+    "Strong Disconfirmatory": (0.075, 0.325),
+}
+_POSITIVITY_RATIO_LABELS = {
+    "Strong Positive": 4.0,
+    "Moderate Positive": 2.0,
+    "Mild Positive": 1.5,
+    "Mild Pessimism": 0.75,
+    "Strong Pessimism": 0.5,
+}
 
 
 def _apply_bias_gradient_color_toggle(
@@ -69,7 +82,9 @@ def _with_config_overrides(
         updated[key] = value
 
     if enable_bias_gradient_colors is not None:
-        _apply_bias_gradient_color_toggle(updated, enabled=bool(enable_bias_gradient_colors))
+        _apply_bias_gradient_color_toggle(
+            updated, enabled=bool(enable_bias_gradient_colors)
+        )
     resolved_bar_order = (
         evaluation_bar_order if evaluation_bar_order is not None else bar_order
     )
@@ -298,7 +313,7 @@ def cliffwalking_evaluation_thesis_config(
             {
                 "key": "total_reward_per_episode",
                 "ylabel": "Return",
-                "title": "CliffWalking Thesis: Evaluation Episode Return",
+                "title": "CliffWalking: Evaluation Episode Return",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -309,7 +324,7 @@ def cliffwalking_evaluation_thesis_config(
             {
                 "key": "episode_length_per_episode",
                 "ylabel": "Episode Length",
-                "title": "CliffWalking Thesis: Evaluation Episode Length",
+                "title": "CliffWalking: Evaluation Episode Length",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -320,7 +335,7 @@ def cliffwalking_evaluation_thesis_config(
             {
                 "key": "total_td_error_per_episode",
                 "ylabel": "TD Error",
-                "title": "CliffWalking Thesis: Evaluation Total TD Error",
+                "title": "CliffWalking: Evaluation Total TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -331,7 +346,7 @@ def cliffwalking_evaluation_thesis_config(
             {
                 "key": "mean_absolute_td_error_per_episode",
                 "ylabel": "Mean |TD Error|",
-                "title": "CliffWalking Thesis: Evaluation Mean Absolute TD Error",
+                "title": "CliffWalking: Evaluation Mean Absolute TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -342,7 +357,7 @@ def cliffwalking_evaluation_thesis_config(
             {
                 "key": "negative_td_error_sum_per_episode",
                 "ylabel": "Negative TD Error Sum",
-                "title": "CliffWalking Thesis: Evaluation Negative TD Error Sum",
+                "title": "CliffWalking: Evaluation Negative TD Error Sum",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -355,7 +370,7 @@ def cliffwalking_evaluation_thesis_config(
                 "metric_transform": "abs",
                 "override_key": "reward_loss_per_episode",
                 "ylabel": "Reward Loss",
-                "title": "CliffWalking Thesis: Evaluation Reward Loss",
+                "title": "CliffWalking: Evaluation Reward Loss",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -366,7 +381,7 @@ def cliffwalking_evaluation_thesis_config(
             {
                 "key": "cliff_falls_per_episode",
                 "ylabel": "Cliff Falls",
-                "title": "CliffWalking Thesis: Evaluation Falls Per Episode",
+                "title": "CliffWalking: Evaluation Falls Per Episode",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -377,7 +392,7 @@ def cliffwalking_evaluation_thesis_config(
             {
                 "key": "frustration_rate_per_episode",
                 "ylabel": "Frustration Rate",
-                "title": "CliffWalking Thesis: Evaluation Frustration Rate",
+                "title": "CliffWalking: Evaluation Frustration Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -542,7 +557,7 @@ def frozenlake_evaluation_thesis_config(
             {
                 "key": "episode_won",
                 "ylabel": "Success Rate",
-                "title": "FrozenLake Thesis: Evaluation Success Rate",
+                "title": "FrozenLake: Evaluation Success Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -553,7 +568,7 @@ def frozenlake_evaluation_thesis_config(
             {
                 "key": "episode_length_per_episode",
                 "ylabel": "Episode Length",
-                "title": "FrozenLake Thesis: Evaluation Episode Length",
+                "title": "FrozenLake: Evaluation Episode Length",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -564,7 +579,7 @@ def frozenlake_evaluation_thesis_config(
             {
                 "key": "total_reward_per_episode",
                 "ylabel": "Return",
-                "title": "FrozenLake Thesis: Evaluation Episode Return",
+                "title": "FrozenLake: Evaluation Episode Return",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -575,7 +590,7 @@ def frozenlake_evaluation_thesis_config(
             {
                 "key": "total_td_error_per_episode",
                 "ylabel": "TD Error",
-                "title": "FrozenLake Thesis: Evaluation Total TD Error",
+                "title": "FrozenLake: Evaluation Total TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -586,7 +601,7 @@ def frozenlake_evaluation_thesis_config(
             {
                 "key": "mean_absolute_td_error_per_episode",
                 "ylabel": "Mean |TD Error|",
-                "title": "FrozenLake Thesis: Evaluation Mean Absolute TD Error",
+                "title": "FrozenLake: Evaluation Mean Absolute TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -597,7 +612,7 @@ def frozenlake_evaluation_thesis_config(
             {
                 "key": "negative_td_error_sum_per_episode",
                 "ylabel": "Negative TD Error Sum",
-                "title": "FrozenLake Thesis: Evaluation Negative TD Error Sum",
+                "title": "FrozenLake: Evaluation Negative TD Error Sum",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -610,7 +625,7 @@ def frozenlake_evaluation_thesis_config(
                 "metric_transform": "abs",
                 "override_key": "reward_loss_per_episode",
                 "ylabel": "Reward Loss",
-                "title": "FrozenLake Thesis: Evaluation Reward Loss",
+                "title": "FrozenLake: Evaluation Reward Loss",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -621,7 +636,7 @@ def frozenlake_evaluation_thesis_config(
             {
                 "key": "frustration_rate_per_episode",
                 "ylabel": "Frustration Rate",
-                "title": "FrozenLake Thesis: Evaluation Frustration Rate",
+                "title": "FrozenLake: Evaluation Frustration Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -797,7 +812,7 @@ def taxi_evaluation_thesis_config(
             {
                 "key": "total_reward_per_episode",
                 "ylabel": "Return",
-                "title": "Taxi-v3 Thesis: Evaluation Episode Return",
+                "title": "Taxi-v3: Evaluation Episode Return",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -808,7 +823,7 @@ def taxi_evaluation_thesis_config(
             {
                 "key": "episode_won",
                 "ylabel": "Success Rate",
-                "title": "Taxi-v3 Thesis: Evaluation Success Rate",
+                "title": "Taxi-v3: Evaluation Success Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -819,7 +834,7 @@ def taxi_evaluation_thesis_config(
             {
                 "key": "episode_length_per_episode",
                 "ylabel": "Episode Length",
-                "title": "Taxi-v3 Thesis: Evaluation Episode Length",
+                "title": "Taxi-v3: Evaluation Episode Length",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -830,7 +845,7 @@ def taxi_evaluation_thesis_config(
             {
                 "key": "taxi_illegal_actions_per_episode",
                 "ylabel": "Illegal Actions",
-                "title": "Taxi-v3 Thesis: Evaluation Illegal Actions",
+                "title": "Taxi-v3: Evaluation Illegal Actions",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -841,7 +856,7 @@ def taxi_evaluation_thesis_config(
             {
                 "key": "total_td_error_per_episode",
                 "ylabel": "TD Error",
-                "title": "Taxi-v3 Thesis: Evaluation Total TD Error",
+                "title": "Taxi-v3: Evaluation Total TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -852,7 +867,7 @@ def taxi_evaluation_thesis_config(
             {
                 "key": "mean_absolute_td_error_per_episode",
                 "ylabel": "Mean |TD Error|",
-                "title": "Taxi-v3 Thesis: Evaluation Mean Absolute TD Error",
+                "title": "Taxi-v3: Evaluation Mean Absolute TD Error",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -863,7 +878,7 @@ def taxi_evaluation_thesis_config(
             {
                 "key": "negative_td_error_sum_per_episode",
                 "ylabel": "Negative TD Error Sum",
-                "title": "Taxi-v3 Thesis: Evaluation Negative TD Error Sum",
+                "title": "Taxi-v3: Evaluation Negative TD Error Sum",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -876,7 +891,7 @@ def taxi_evaluation_thesis_config(
                 "metric_transform": "abs",
                 "override_key": "reward_loss_per_episode",
                 "ylabel": "Reward Loss",
-                "title": "Taxi-v3 Thesis: Evaluation Reward Loss",
+                "title": "Taxi-v3: Evaluation Reward Loss",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -887,7 +902,7 @@ def taxi_evaluation_thesis_config(
             {
                 "key": "frustration_rate_per_episode",
                 "ylabel": "Frustration Rate",
-                "title": "Taxi-v3 Thesis: Evaluation Frustration Rate",
+                "title": "Taxi-v3: Evaluation Frustration Rate",
                 "plot_fn": plot_bar_mean_multi,
                 "plot_kwargs": {
                     "figsize": THESIS_FIGSIZE,
@@ -907,8 +922,11 @@ def _thesis_bias_lr_label(agent_kwargs: dict[str, Any]) -> str:
     if alpha_conf is not None and alpha_disconf is not None:
         ac = float(alpha_conf)
         ad = float(alpha_disconf)
+        named_conf_label = _match_named_confirmation_label(ac, ad)
+        if named_conf_label is not None:
+            return named_conf_label
         if math.isclose(ac, ad, rel_tol=0.0, abs_tol=1e-12):
-            return f"a={ac:.3f}"
+            return f"Baseline (a={ac:.3f})"
         return f"ac={ac:.3f}, ad={ad:.3f}"
 
     alpha_positive = agent_kwargs.get("alpha_positive")
@@ -917,10 +935,47 @@ def _thesis_bias_lr_label(agent_kwargs: dict[str, Any]) -> str:
         ap = float(alpha_positive)
         an = float(alpha_negative)
         if math.isclose(ap, an, rel_tol=0.0, abs_tol=1e-12):
-            return f"a={ap:.3f}"
+            return f"Baseline (a={ap:.3f})"
+        named_pos_label = _match_named_positivity_ratio_label(ap, an)
+        if named_pos_label is not None:
+            return named_pos_label
         return f"ap={ap:.3f}, an={an:.3f}"
 
     return str(agent_kwargs)
+
+
+def _match_named_confirmation_label(alpha_conf: float, alpha_disconf: float) -> str | None:
+    """Return a named label for a matching confirmation-bias alpha pair."""
+    for label, (ref_conf, ref_disconf) in _CONFIRMATION_BIAS_LR_LABELS.items():
+        if math.isclose(
+            alpha_conf, ref_conf, rel_tol=0.0, abs_tol=1e-12
+        ) and math.isclose(alpha_disconf, ref_disconf, rel_tol=0.0, abs_tol=1e-12):
+            return label
+    return None
+
+
+def _match_named_positivity_ratio_label(
+    alpha_positive: float,
+    alpha_negative: float,
+) -> str | None:
+    """Return a named label by matching the positivity ratio (ap/an)."""
+    if math.isclose(alpha_negative, 0.0, rel_tol=0.0, abs_tol=1e-12):
+        return None
+
+    ratio = alpha_positive / alpha_negative
+    if ratio <= 0.0:
+        return None
+
+    best_label: str | None = None
+    best_log_dist = float("inf")
+    for label, ref_ratio in _POSITIVITY_RATIO_LABELS.items():
+        log_dist = abs(math.log(ratio / ref_ratio))
+        if log_dist < best_log_dist:
+            best_log_dist = log_dist
+            best_label = label
+
+    # Accept nearest template ratio when within 5% relative distance.
+    return best_label if best_log_dist <= math.log(1.05) else None
 
 
 def cliffwalking_thesis_label_fn(params: dict[str, Any]) -> str:

@@ -482,15 +482,9 @@ def _build_bias_colors_by_label(
     grouped: Dict[tuple, Dict[str, Any]],
     label_fn: Callable[[Dict[str, Any]], str] | None,
 ) -> dict[str, str] | None:
-    """Return per-label colors for baseline/confirmation/positivity sweeps.
-
-    The color family encodes agent type and within-family intensity encodes bias
-    strength. Equal-rate biased agents are treated as baseline.
-    """
+    """Return per-label colors with directional bias hues and strength shading."""
     label_infos: list[tuple[str, str, float]] = []
-    baseline_strengths: list[float] = []
-    conf_strengths: list[float] = []
-    pos_strengths: list[float] = []
+    strengths_by_kind: Dict[str, list[float]] = {}
 
     for entry in grouped.values():
         params = entry.get("params") or {}
@@ -500,40 +494,37 @@ def _build_bias_colors_by_label(
         if kind is None:
             continue
         label_infos.append((label, kind, strength))
-        if kind == "baseline":
-            baseline_strengths.append(strength)
-        elif kind == "confirmation":
-            conf_strengths.append(strength)
-        elif kind == "positivity":
-            pos_strengths.append(strength)
+        strengths_by_kind.setdefault(kind, []).append(strength)
 
     if not label_infos:
         return None
 
-    baseline_max = max(baseline_strengths) if baseline_strengths else 0.0
-    conf_max = max(conf_strengths) if conf_strengths else 0.0
-    pos_max = max(pos_strengths) if pos_strengths else 0.0
+    kind_to_cmap = {
+        "baseline": "Greens",
+        "confirmation_confirmatory": "Blues",
+        "confirmation_disconfirmatory": "Reds",
+        "positivity_positive": "Purples",
+        "positivity_pessimistic": "Oranges",
+    }
+    max_by_kind = {
+        kind: (max(values) if values else 0.0)
+        for kind, values in strengths_by_kind.items()
+    }
     colors_by_label: dict[str, str] = {}
 
     for label, kind, strength in label_infos:
-        if kind == "baseline":
-            norm = 1.0 if baseline_max <= 0.0 else strength / baseline_max
-            colors_by_label[label] = _sample_strength_color("Greens", norm)
+        cmap_name = kind_to_cmap.get(kind)
+        if cmap_name is None:
             continue
-        if kind == "confirmation":
-            norm = 1.0 if conf_max <= 0.0 else strength / conf_max
-            colors_by_label[label] = _sample_strength_color("Blues", norm)
-            continue
-        if kind == "positivity":
-            norm = 1.0 if pos_max <= 0.0 else strength / pos_max
-            colors_by_label[label] = _sample_strength_color("Oranges", norm)
-            continue
+        kind_max = max_by_kind.get(kind, 0.0)
+        norm = 1.0 if kind_max <= 0.0 else strength / kind_max
+        colors_by_label[label] = _sample_strength_color(cmap_name, norm)
 
     return colors_by_label or None
 
 
 def _bias_style_kind_and_strength(agent_kwargs: Dict[str, Any]) -> tuple[str | None, float]:
-    """Classify agent into a color family and compute raw bias strength."""
+    """Classify agent into a directional color kind and compute raw strength."""
     alpha_conf = agent_kwargs.get("alpha_conf")
     alpha_disconf = agent_kwargs.get("alpha_disconf")
     if alpha_conf is not None and alpha_disconf is not None:
@@ -547,7 +538,8 @@ def _bias_style_kind_and_strength(agent_kwargs: Dict[str, Any]) -> tuple[str | N
             return ("baseline", float(baseline_strength))
         denom = abs(ac) + abs(ad)
         strength = abs(ac - ad) / denom if denom > 0.0 else abs(ac - ad)
-        return ("confirmation", float(strength))
+        kind = "confirmation_confirmatory" if ac > ad else "confirmation_disconfirmatory"
+        return (kind, float(strength))
 
     alpha_positive = agent_kwargs.get("alpha_positive")
     alpha_negative = agent_kwargs.get("alpha_negative")
@@ -565,7 +557,8 @@ def _bias_style_kind_and_strength(agent_kwargs: Dict[str, Any]) -> tuple[str | N
         else:
             denom = abs(ap) + abs(an)
             strength = abs(ap - an) / denom if denom > 0.0 else abs(ap - an)
-        return ("positivity", float(strength))
+        kind = "positivity_positive" if ap > an else "positivity_pessimistic"
+        return (kind, float(strength))
 
     for key in ("alpha", "learning_rate"):
         if key not in agent_kwargs:
