@@ -180,9 +180,10 @@ def plot_sweep_training(
                     used_names=used_filenames,
                 )
             resolved_title = f"{title} ({title_suffix})" if title_suffix else title
+            if _plot_fn_supports_arg(plot_fn, "window"):
+                call_plot_kwargs["window"] = window_size
             plot_fn(
                 series_by_label,
-                window=window_size,
                 ylabel=ylabel,
                 title=resolved_title,
                 xlabel=xlabel,
@@ -327,9 +328,10 @@ def plot_sweep_evaluation(
                     used_names=used_filenames,
                 )
             resolved_title = f"{title} ({title_suffix})" if title_suffix else title
+            if _plot_fn_supports_arg(plot_fn, "window"):
+                call_plot_kwargs["window"] = window_size
             plot_fn(
                 series_by_label,
-                window=window_size,
                 ylabel=ylabel,
                 title=resolved_title,
                 xlabel=xlabel,

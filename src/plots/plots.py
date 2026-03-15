@@ -183,7 +183,6 @@ def plot_moving_average_multi(
 
 def plot_bar_mean_multi(
     series: dict[str, list[float]],
-    window: int = 100,
     ylabel: str = "Value",
     title: str = "Mean Value",
     xlabel: str = "Setting",
@@ -210,7 +209,6 @@ def plot_bar_mean_multi(
     When ``runs_by_label`` is provided, bars are computed from per-run means and
     confidence intervals are drawn across runs (typically seeds).
     """
-    del window  # kept for compatibility with generic plot function call sites
     if not series:
         raise ValueError("series must not be empty")
     if start_episode < 0:
